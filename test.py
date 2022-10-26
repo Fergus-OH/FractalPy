@@ -2,25 +2,19 @@ from matplotlib import units
 import numpy as np
 import matplotlib.pyplot as plt
 
-dpi = 100
-unit = 1/np.sqrt(dpi)
+dpi = 3
+unit = 1/dpi
 
 length = 5
 x = np.arange(0, length, unit)
 y = np.array([2]*len(x))
 
-fig, ax = plt.subplots(figsize=(length+1,length+1))
+fig, ax = plt.subplots(figsize=(length+1,length+1), dpi=200)
+num_points = (.5*unit*fig.dpi)
 
-px = 1/plt.rcParams['figure.dpi']
-print(plt.rcParams['figure.dpi'])
-
-ppi = 1/np.sqrt(plt.rcParams['figure.dpi'])
-
-num_points = (np.pi*(.5*unit*ppi)**2)
-print(num_points)
-
-ax.scatter(x, y, s=(.5*unit*ppi)**2)
+ax.scatter(x, y, marker='o', s=num_points**2, linewidths=0)
 ax.axis([0,length,0,length])
+ax.axis('off')
 fig.tight_layout()
 plt.show()
 
