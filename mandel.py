@@ -26,7 +26,7 @@ class Mandelbrot:
         self.color_chart = np.zeros(self.grid.shape)
 
         self.mandelbrot()
-        print('Object initialised, use plot() method to plot result...')
+        print('Object initialised, call plot() method to plot result...')
 
     def iteration(self, z, c):
         for j in range(self.threshold):
