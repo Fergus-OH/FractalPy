@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import matplotlib.cm as cmx
 import numpy as np
 
 
@@ -44,12 +45,15 @@ class Mandelbrot:
                     flag, pt_color = self.iteration(self.grid[i, j], self.c)
                     self.color_chart[i, j] = pt_color
     
-    def plot(self, save=False, extension='png', c_map='prism', axis='off', fig_size=None, dpi=100):
+    def plot(self, save=False, filename=None, extension='png', c_map='prism', axis='off', fig_size=None, dpi=100):
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-        ax.imshow(self.color_chart, origin='upper', cmap=c_map, aspect='equal')
+        self.color_chart = np.ma.masked_where(self.color_chart==0, self.color_chart)
+        c_map = cmx.get_cmap(c_map).copy()
+        c_map.set_bad(color='black')
+        ax.imshow(self.color_chart, origin='upper', cmap=c_map, vmin=0, vmax=self.threshold, aspect='equal')
         ax.axis(axis)
         plt.show()
         if save:
-            filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{dpi}dpi').replace('.', ',')
+            filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{dpi}dpi').replace('.', ',') if not filename else str(filename)
             fig.savefig('images/'+filename+f'.{extension}', format=extension,
                         dpi=fig.dpi, bbox_inches='tight', pad_inches=0)
