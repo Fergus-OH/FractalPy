@@ -4,7 +4,7 @@ import numpy as np
 class Mandelbrot:
     def __init__(self, mode='mandelbrot', c=(-0.79 + 0.15j), x_ran=[-2, 1], y_ran=[-1.5, 1.5], npts=1000, threshold=300):
         self.mode = mode
-        self.c = c if self.mode=='julia' else _
+        self.c = c if self.mode=='julia' else ''
         self.x_ran = x_ran
         self.y_ran = y_ran
         self.npts = npts
@@ -23,8 +23,7 @@ class Mandelbrot:
         self.colorchart = np.zeros(self.grid.shape)
 
         self.mandelbrot()
-        print('Object initialised, plotting result...')
-        self.plot()
+        print('Object initialised, use plot() method to plot result...')
 
     def iteration(self, z, c):
         for j in range(self.threshold):
