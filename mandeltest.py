@@ -26,7 +26,7 @@ def mandelbrot(threshold, density):
     imaginaryAxisLen = len(imaginaryAxis)
 
     # 2-D array to represent mandelbrot atlas
-    atlas = np.empty((realAxisLen, imaginaryAxisLen))
+    atlas = np.zeros((realAxisLen, imaginaryAxisLen))
 
     # color each point in the atlas depending on the iteration count
     for ix in range(realAxisLen):
@@ -35,10 +35,10 @@ def mandelbrot(threshold, density):
             cy = imaginaryAxis[iy]
             c = complex(cx, cy)
 
-            atlas[ix, iy] = countIterationsUntilDivergent(c, threshold)
+            atlas[ix][iy] = countIterationsUntilDivergent(c, threshold)
             pass
         pass
-
+    print(atlas.shape)
     # plot and display mandelbrot set
     plt.imshow(atlas, interpolation="nearest")
     plt.show()
