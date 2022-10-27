@@ -51,5 +51,5 @@ class Mandelbrot:
         plt.show()
         if save:
             filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{dpi}dpi').replace('.', ',')
-            fig.savefig('images/'+filename+f'.{extension}', format=format,
+            fig.savefig('images/'+filename+f'.{extension}', format=extension,
                         dpi=fig.dpi, bbox_inches='tight', pad_inches=0)
