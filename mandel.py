@@ -16,7 +16,7 @@ class Mandelbrot:
         self._determine_color_chart()
         
         self._mandelbrot()
-        print('Object initialised, call plot() method to plot result...')
+        print('Object initialised, call plot() method to plot the image or save() method to save in images directory...')
 
     def _determine_color_chart(self):
         x_min, x_max = self.x_ran
@@ -42,17 +42,22 @@ class Mandelbrot:
         for i in range(self.grid.shape[0]):
             for j in range(self.grid.shape[1]):
                 if self.mode == 'mandelbrot':
-                    pt_color = self.iteration(complex(0, 0), self.grid[i, j])
+                    pt_color = self._iteration(complex(0, 0), self.grid[i, j])
                     self.color_chart[i, j] = pt_color
                 elif self.mode == 'julia':
-                    pt_color = self.iteration(self.grid[i, j], self.c)
+                    pt_color = self._iteration(self.grid[i, j], self.c)
                     self.color_chart[i, j] = pt_color
+        # masking colorchart
+        self.color_chart = np.ma.masked_where(self.color_chart==0, self.color_chart)
+
+    def _get_cmap(self, c_map):
+        new_c_map = cmx.get_cmap(c_map).copy()
+        new_c_map.set_bad(color='black')
+        return new_c_map
     
     def plot(self, output=True, save=False, filename=None, extension='png', c_map='hsv', pallet_len=250, axis='off', fig_size=None, dpi=100):
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-        self.color_chart = np.ma.masked_where(self.color_chart==0, self.color_chart)
-        c_map = cmx.get_cmap(c_map).copy()
-        c_map.set_bad(color='black')
+        c_map = self._get_cmap(c_map)
         # ax.imshow(self.color_chart, origin='upper', cmap=c_map, vmin=0, vmax=self.threshold, aspect='equal')
         ax.imshow(self.color_chart%pallet_len, origin='upper', cmap=c_map, vmin=0, vmax=pallet_len, aspect='equal')
         ax.axis(axis)
@@ -66,7 +71,9 @@ class Mandelbrot:
         ax.set_yticklabels(np.linspace(self.y_ran[0], self.y_ran[1], 5))
 
         if output: plt.show()
-        if save:
-            filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{dpi}dpi').replace('.', ',') if not filename else str(filename)
-            fig.savefig('images/'+filename+f'.{extension}', format=extension,
-                        dpi=fig.dpi, bbox_inches='tight', pad_inches=0)
+
+    def save(self, filename=None, extension='png', c_map='hsv', pallet_len=250):
+        c_map = self._get_cmap(c_map)
+        # setting the default filename
+        filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',') if not filename else str(filename)
+        plt.imsave(fname='images/'+filename+f'.{extension}', arr=self.color_chart%pallet_len, origin='upper', cmap=c_map, vmin=0, vmax=pallet_len, format=extension)
