@@ -12,7 +12,13 @@ class Mandelbrot:
         self.y_ran = y_ran
         self.n_pts = n_pts
         self.threshold = threshold
+        self.color_chart = None
+        self._determine_color_chart()
+        
+        self.mandelbrot()
+        print('Object initialised, call plot() method to plot result...')
 
+    def _determine_color_chart(self):
         x_min, x_max = self.x_ran
         y_min, y_max = self.y_ran
 
@@ -24,9 +30,6 @@ class Mandelbrot:
 
         self.grid = np.array([x_arr + y*1j for y in reversed(y_arr)])
         self.color_chart = np.zeros(self.grid.shape)
-
-        self.mandelbrot()
-        print('Object initialised, call plot() method to plot result...')
 
     def iteration(self, z, c):
         for j in range(self.threshold):
@@ -45,13 +48,23 @@ class Mandelbrot:
                     flag, pt_color = self.iteration(self.grid[i, j], self.c)
                     self.color_chart[i, j] = pt_color
     
-    def plot(self, save=False, filename=None, extension='png', c_map='prism', axis='off', fig_size=None, dpi=100):
+    def plot(self, save=False, filename=None, extension='png', c_map='hsv', pallet_len=250, axis='off', fig_size=None, dpi=100):
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
         self.color_chart = np.ma.masked_where(self.color_chart==0, self.color_chart)
         c_map = cmx.get_cmap(c_map).copy()
         c_map.set_bad(color='black')
-        ax.imshow(self.color_chart, origin='upper', cmap=c_map, vmin=0, vmax=self.threshold, aspect='equal')
+        # ax.imshow(self.color_chart, origin='upper', cmap=c_map, vmin=0, vmax=self.threshold, aspect='equal')
+        ax.imshow(self.color_chart%pallet_len, origin='upper', cmap=c_map, vmin=0, vmax=pallet_len, aspect='equal')
         ax.axis(axis)
+
+        x_start, x_end = ax.get_xlim()
+        ax.set_xticks(np.linspace(x_start, x_end, 5))
+        ax.set_xticklabels(np.linspace(self.x_ran[0], self.x_ran[1], 5), rotation=60)
+
+        y_start, y_end = ax.get_ylim()
+        ax.set_yticks(np.linspace(y_start, y_end, 5))
+        ax.set_yticklabels(np.linspace(self.y_ran[0], self.y_ran[1], 5))
+
         plt.show()
         if save:
             filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{dpi}dpi').replace('.', ',') if not filename else str(filename)
