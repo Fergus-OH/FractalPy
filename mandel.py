@@ -5,7 +5,7 @@ import numpy as np
 
 class Mandelbrot:
     def __init__(self, mode='mandelbrot', c=(-0.79 + 0.15j),
-                 x_ran=(-2, 1), y_ran=(-1.5, 1.5), n_pts=1000, threshold=300):
+                 x_ran=(-2, 1), y_ran=(-1.5, 1.5), n_pts=1000, threshold=1000):
         self.mode = mode
         self.c = c if self.mode == 'julia' else ''
         self.x_ran = x_ran
@@ -15,7 +15,7 @@ class Mandelbrot:
         self.color_chart = None
         self._determine_color_chart()
         
-        self.mandelbrot()
+        self._mandelbrot()
         print('Object initialised, call plot() method to plot result...')
 
     def _determine_color_chart(self):
@@ -31,24 +31,24 @@ class Mandelbrot:
         self.grid = np.array([x_arr + y*1j for y in reversed(y_arr)])
         self.color_chart = np.zeros(self.grid.shape)
 
-    def iteration(self, z, c):
+    def _iteration(self, z, c):
         for j in range(self.threshold):
             z = z**2 + c
             if np.isnan(abs(z)):
-                return False, j
-        return True, 0
+                return j
+        return 0
 
-    def mandelbrot(self):
+    def _mandelbrot(self):
         for i in range(self.grid.shape[0]):
             for j in range(self.grid.shape[1]):
                 if self.mode == 'mandelbrot':
-                    flag, pt_color = self.iteration(complex(0, 0), self.grid[i, j])
+                    pt_color = self.iteration(complex(0, 0), self.grid[i, j])
                     self.color_chart[i, j] = pt_color
                 elif self.mode == 'julia':
-                    flag, pt_color = self.iteration(self.grid[i, j], self.c)
+                    pt_color = self.iteration(self.grid[i, j], self.c)
                     self.color_chart[i, j] = pt_color
     
-    def plot(self, save=False, filename=None, extension='png', c_map='hsv', pallet_len=250, axis='off', fig_size=None, dpi=100):
+    def plot(self, output=True, save=False, filename=None, extension='png', c_map='hsv', pallet_len=250, axis='off', fig_size=None, dpi=100):
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
         self.color_chart = np.ma.masked_where(self.color_chart==0, self.color_chart)
         c_map = cmx.get_cmap(c_map).copy()
@@ -65,7 +65,7 @@ class Mandelbrot:
         ax.set_yticks(np.linspace(y_start, y_end, 5))
         ax.set_yticklabels(np.linspace(self.y_ran[0], self.y_ran[1], 5))
 
-        plt.show()
+        if output: plt.show()
         if save:
             filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{dpi}dpi').replace('.', ',') if not filename else str(filename)
             fig.savefig('images/'+filename+f'.{extension}', format=extension,
