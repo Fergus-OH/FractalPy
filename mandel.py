@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import numpy as np
 
+import imageio
+
 
 class Mandelbrot:
     def __init__(self, mode='mandelbrot', c=(-0.79 + 0.15j),
@@ -122,3 +124,31 @@ class Mandelbrot:
         # setting the default filename
         filename = str(f'{self.mode}{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',') if not filename else str(filename)
         plt.imsave(fname='images/'+filename+f'.{extension}', arr=self.color_chart%pallet_len, origin='upper', cmap=c_map, vmin=0, vmax=pallet_len, format=extension)
+
+    def zoom(self, filename='', foldername='zoom', initial=(), x_init=(-3, 3), y_init=(-1.6875, 1.6875), target=(6e+4,-1.186592e+0,-1.901211e-1), n_iters=120, start_frame=0):
+        (m, x, y) = target 
+
+        x_l = abs(x_init[1] - x_init[0])/m
+        x_target = (x - x_l/2, x + x_l/2)
+
+        y_l = abs(y_init[1] - y_init[0])/m
+        y_target = (y - y_l/2, y + y_l/2)
+
+        geom = np.flip(1-(np.geomspace(1,m,n_iters)-1)/(m-1))
+        x_ranges = [(x0,x1) for (x0,x1) in zip(x_init[0] + geom*(x_target[0]-x_init[0]), x_init[1] + geom*(x_target[1]-x_init[1]))]
+        y_ranges = [(y0,y1) for (y0,y1) in zip(y_init[0] + geom*(y_target[0]-y_init[0]), y_init[1] + geom*(y_target[1]-y_init[1]))]
+
+
+        for i in range(start_frame, n_iters):
+            self.x_ran = x_ranges[i]
+            self.y_ran = y_ranges[i]
+            self.color_chart = self._determine_color_chart()
+            self.save(f'{foldername}/image{i}')
+            print(f'iteration {i} completed...')
+
+        # Build GIF
+        with imageio.get_writer(f'images/mandel_zoom{filename}.gif', mode='I') as writer:
+            for filename in [f'images/zoomgeom/image{i}.png' for i in range(n_iters)]:
+                image = imageio.imread(filename)
+                writer.append_data(image)
+
