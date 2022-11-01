@@ -12,10 +12,7 @@ class Mandelbrot:
         self.y_ran = y_ran
         self.n_pts = n_pts
         self.threshold = threshold
-        self.color_chart = None
-        self._determine_color_chart()
-        
-        # self._mandelbrot()
+        self.color_chart = self._determine_color_chart()
         print('Object initialised, call plot() method to plot the image or save() method to save in images directory...')
 
     def _determine_color_chart(self):
@@ -28,30 +25,76 @@ class Mandelbrot:
         x_arr = np.linspace(x_min, x_max, self.n_pts)
         y_arr = np.linspace(y_min, y_max, int(self.n_pts * y_len / x_len))
 
-        self.grid = np.array([x_arr + y*1j for y in reversed(y_arr)])
-        # self.color_chart = np.zeros(self.grid.shape)
-        self.color_chart = np.vectorize(self._iteration)(self.grid)
-        self.color_chart = np.ma.masked_where(self.color_chart == 0, self.color_chart)
+        grid = np.array([x_arr + y*1j for y in reversed(y_arr)]).flatten()
+        color_chart = np.zeros(grid.shape)
 
-    def _iteration(self, c):
-        z = 0
-        for j in range(self.threshold):
-            z = np.power(z, 2) + c
-            if np.isnan(np.abs(z)):
-                return j
-        return 0
+        # # MANDELBROT
+        # self.grid = self.grid.flatten()
+        # self.color_chart = self.color_chart.flatten()
+        # zz = np.zeros(self.grid.shape) * 0j
+        # inds = ~np.isinf(np.abs(zz))
+        # for _ in range(self.threshold):
+        #     zz[inds] = np.power(zz[inds], 2) + self.grid[inds]
+        #     inds = ~np.isinf(np.abs(zz))
+        #     self.color_chart[inds] += 1
+        # self.color_chart[inds] = 0
+        # self.color_chart = self.color_chart.reshape((y_arr.shape[0], x_arr.shape[0]))
+        # self.color_chart = np.ma.masked_where(self.color_chart == 0, self.color_chart)
 
-    def _mandelbrot(self):
-        for i in range(self.grid.shape[0]):
-            for j in range(self.grid.shape[1]):
-                if self.mode == 'mandelbrot':
-                    pt_color = self._iteration(complex(0, 0), self.grid[i, j])
-                    self.color_chart[i, j] = pt_color
-                elif self.mode == 'julia':
-                    pt_color = self._iteration(self.grid[i, j], self.c)
-                    self.color_chart[i, j] = pt_color
-        # masking colorchart
-        self.color_chart = np.ma.masked_where(self.color_chart == 0, self.color_chart)
+
+        # # JULIA
+        # zz = self.grid.flatten()
+        # self.color_chart = self.color_chart.flatten()
+        # inds = ~np.isinf(np.abs(zz))
+        # for _ in range(self.threshold):
+        #     zz[inds] = np.power(zz[inds], 2) + self.c
+        #     inds = ~np.isinf(np.abs(zz))
+        #     self.color_chart[inds] += 1
+        # self.color_chart[inds] = 0
+        # self.color_chart = self.color_chart.reshape((y_arr.shape[0], x_arr.shape[0]))
+        # self.color_chart = np.ma.masked_where(self.color_chart == 0, self.color_chart)
+
+        if self.mode == 'mandelbrot':
+            zz = np.zeros(grid.shape) * 0j
+            c = grid
+
+        elif self.mode == 'julia':
+            zz = grid.flatten()
+            c = np.full(grid.shape, self.c)
+
+        inds = ~np.isinf(np.abs(zz))
+        for _ in range(self.threshold):
+            zz[inds] = np.power(zz[inds], 2) + c[inds]
+            inds = ~np.isinf(np.abs(zz))
+            color_chart[inds] += 1
+        color_chart[inds] = 0
+        color_chart = color_chart.reshape((y_arr.shape[0], x_arr.shape[0]))
+        color_chart = np.ma.masked_where(color_chart == 0, color_chart)
+
+        return color_chart
+
+
+
+
+    # def _iteration(self, c):
+    #     z = 0
+    #     for j in range(self.threshold):
+    #         z = np.power(z, 2) + c
+    #         if np.isnan(np.abs(z)):
+    #             return j
+    #     return 0
+
+    # def _mandelbrot(self):
+    #     for i in range(self.grid.shape[0]):
+    #         for j in range(self.grid.shape[1]):
+    #             if self.mode == 'mandelbrot':
+    #                 pt_color = self._iteration(complex(0, 0), self.grid[i, j])
+    #                 self.color_chart[i, j] = pt_color
+    #             elif self.mode == 'julia':
+    #                 pt_color = self._iteration(self.grid[i, j], self.c)
+    #                 self.color_chart[i, j] = pt_color
+    #     # masking colorchart
+    #     self.color_chart = np.ma.masked_where(self.color_chart == 0, self.color_chart)
 
     def _get_cmap(self, c_map):
         new_c_map = cmx.get_cmap(c_map).copy()
