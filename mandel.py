@@ -15,7 +15,7 @@ class Mandelbrot:
         self.color_chart = None
         self._determine_color_chart()
         
-        self._mandelbrot()
+        # self._mandelbrot()
         print('Object initialised, call plot() method to plot the image or save() method to save in images directory...')
 
     def _determine_color_chart(self):
@@ -29,12 +29,15 @@ class Mandelbrot:
         y_arr = np.linspace(y_min, y_max, int(self.n_pts * y_len / x_len))
 
         self.grid = np.array([x_arr + y*1j for y in reversed(y_arr)])
-        self.color_chart = np.zeros(self.grid.shape)
+        # self.color_chart = np.zeros(self.grid.shape)
+        self.color_chart = np.vectorize(self._iteration)(self.grid)
+        self.color_chart = np.ma.masked_where(self.color_chart == 0, self.color_chart)
 
-    def _iteration(self, z, c):
+    def _iteration(self, c):
+        z = 0
         for j in range(self.threshold):
-            z = z**2 + c
-            if np.isnan(abs(z)):
+            z = np.power(z, 2) + c
+            if np.isnan(np.abs(z)):
                 return j
         return 0
 
