@@ -5,7 +5,7 @@ import imageio as iio
 import os
 from mpire import WorkerPool
 from mpire.dashboard import connect_to_dashboard
-import warnings
+# import warnings
 import numba as nb
 # from p_tqdm import p_umap
 # from multiprocessing import Pool
@@ -103,6 +103,7 @@ class Mandelbrot:
 
     def save(self, subdir='', filename=None, frame_iter='', extension='png', c_map='hsv', pallet_len=250):
         c_map = self._get_c_map(c_map)
+        self._make_dir(os.path.join('images', subdir))
         # setting the default filename
         if not self.julia:
             filename = str(f'Mandelbrot_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',')\
@@ -110,7 +111,7 @@ class Mandelbrot:
         else:
             filename = str(f'Julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',')\
                 if not filename else str(filename)
-        plt.imsave(fname=f'images/{subdir}{filename}{frame_iter}.{extension}', arr=self.color_chart % pallet_len,
+        plt.imsave(fname=f'images/{subdir}/{filename}{frame_iter}.{extension}', arr=self.color_chart % pallet_len,
                    origin='upper', cmap=c_map, vmin=0, vmax=pallet_len, format=extension)
 
     @staticmethod
@@ -118,6 +119,14 @@ class Mandelbrot:
         new_c_map = cmx.get_cmap(c_map).copy()
         new_c_map.set_bad(color='black')
         return new_c_map
+
+    @staticmethod
+    def _make_dir(path):
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            # directory already exists
+            pass
 
 
 ### Zoom and spin features
@@ -153,7 +162,7 @@ class Mandelbrot:
         with WorkerPool(n_jobs=n_jobs) as pool:
             pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
 
-        self.build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames)
+        self._build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames)
 
     def _single_zoom_frame(self, i, x_cur, y_cur):
     # def _single_zoom_frame(self, inputs):
@@ -162,7 +171,7 @@ class Mandelbrot:
         self.y_ran = y_cur
 
         self.color_chart = self._determine_color_chart()
-        self.save(filename='frame', subdir='frames/', frame_iter=i)
+        self.save(filename='frame', subdir='frames', frame_iter=i)
 
 
     def spin(self, filename=None, frame_subdir='frames', n_frames=60, n_jobs=os.cpu_count()):
@@ -175,17 +184,18 @@ class Mandelbrot:
         inputs = zip(range(n_frames), c_ran)
         with WorkerPool(n_jobs=n_jobs) as pool:
             pool.map(self._single_spin_frame, inputs, progress_bar=True, iterable_len=n_frames)
-        self.build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames)
+        self._build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames)
 
     def _single_spin_frame(self, i, c):
         self.c = c
         self.color_chart = self._determine_color_chart()
-        self.save(filename='frame', subdir='frames/', frame_iter=i)
+        self.save(filename='frame', subdir='frames', frame_iter=i)
 
 # Creating video
     @staticmethod
-    def build_gif(filename, frame_subdir, n_frames):
+    def _build_gif(filename, frame_subdir, n_frames):
         print('Compiling video...')
+        Mandelbrot._make_dir('videos')
         with iio.get_writer(f'videos/{filename}.gif', mode='I') as writer:
             for frame in [f'images/{frame_subdir}/frame{i}.png' for i in range(n_frames)]:
                 image = iio.v3.imread(frame)
