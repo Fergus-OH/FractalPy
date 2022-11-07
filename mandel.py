@@ -15,65 +15,44 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 # connect_to_dashboard(8099)
 
 
-
-
-
-
-def speed_determine_color_chart(x_ran, y_ran, n_pts, julia, c, threshold):
-    x_min, x_max = x_ran
-    y_min, y_max = y_ran
-
-    x_len = abs(x_max - x_min)
-    y_len = abs(y_max - y_min)
-
-    x_arr = np.linspace(x_min, x_max, n_pts)
-    y_arr = np.linspace(y_max, y_min, int(n_pts * y_len / x_len))
-
-    # grid = np.array([x_arr + y * 1j for y in y_arr]).flatten()
-    # color_chart = np.zeros((len(x_arr), len(y_arr)), dtype=np.uint8)
-
-    if not julia:
-        # zz = np.zeros(grid.shape) * 0j
-        # c = grid
-        color_chart = speed(x_arr, y_arr, threshold)
-        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
+def speed(x_arr, y_arr, threshold, julia, c):
+    @nb.jit(nopython=True)
+    def mandel_chart(x_arr, y_arr, threshold):
+        color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
+        for i in range(len(y_arr)):
+            for j in range(len(x_arr)):
+                c = complex(x_arr[j], y_arr[i])
+                z = 0.0j
+                for k in range(threshold):
+                    z = z * z + c
+                    if (z.real * z.real + z.imag * z.imag) >= 4:
+                        color_chart[i, j] = k
+                        break
         return color_chart
 
-    else:
-        # zz = grid.flatten()
-        # c = np.full(grid.shape, c)
-        pass
-
-@nb.jit(nopython=True)
-def speed(x_arr, y_arr, threshold):
-    color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-    for i in range(len(y_arr)):
-        for j in range(len(x_arr)):
-            c = complex(x_arr[j], y_arr[i])
-            z = 0.0j
-            for k in range(threshold):
-                z = z * z + c
-                if (z.real * z.real + z.imag * z.imag) >= 4:
-                    color_chart[i, j] = k
-                    break
-    return color_chart
-
-
-
+    @nb.jit(nopython=True)
+    def julia_chart(x_arr, y_arr, threshold, c):
+        color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
+        for i in range(len(y_arr)):
+            for j in range(len(x_arr)):
+                z = complex(x_arr[j], y_arr[i])
+                for k in range(threshold):
+                    z = z * z + c
+                    if (z.real * z.real + z.imag * z.imag) >= 4:
+                        color_chart[i, j] = k
+                        break
+        return color_chart
+    return mandel_chart(x_arr, y_arr, threshold) if not julia else julia_chart(x_arr, y_arr, threshold, c)
 
 
 class Mandelbrot:
     def __init__(self, julia=False, c=(-0.79 + 0.15j), x_ran=None, y_ran=None, n_pts=1000, threshold=1000):
         self.julia = julia
         self.c = c if julia else None
-
         self.x_ran, self.y_ran = self._get_default_ranges(x_ran, y_ran)
-
         self.n_pts = n_pts
         self.threshold = threshold
-        # self.color_chart = self._determine_color_chart()
-        self.color_chart = speed_determine_color_chart(self.x_ran, self.y_ran, self.n_pts, self.julia, self.c, self.threshold)
-
+        self.color_chart = self._determine_color_chart()
         print('Object initialised, call plot() method to plot image or save() method to save in images directory...')
 
     def _get_default_ranges(self, x_ran, y_ran):
@@ -91,38 +70,19 @@ class Mandelbrot:
                 f'julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',')
         return filename, frame_subdir
 
-    # def _determine_color_chart(self):
-        # self.x_min, self.x_max = self.x_ran
-        # self.y_min, self.y_max = self.y_ran
+    def _determine_color_chart(self):
+        x_min, x_max = self.x_ran
+        y_min, y_max = self.y_ran
 
-        # x_len = abs(self.x_max - self.x_min)
-        # y_len = abs(self.y_max - self.y_min)
+        x_len = abs(x_max - x_min)
+        y_len = abs(y_max - y_min)
 
-        # x_arr = np.linspace(self.x_min, self.x_max, self.n_pts)
-        # y_arr = np.linspace(self.y_min, self.y_max, int(self.n_pts * y_len / x_len))
+        x_arr = np.linspace(x_min, x_max, self.n_pts)
+        y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
 
-        # grid = np.array([x_arr + y * 1j for y in reversed(y_arr)]).flatten()
-        # color_chart = np.zeros(grid.shape)
-
-        # if not self.julia:
-        #     zz = np.zeros(grid.shape) * 0j
-        #     c = grid
-
-        # else:
-        #     zz = grid.flatten()
-        #     c = np.full(grid.shape, self.c)
-
-        # # Escape radius is 4
-        # ind_s = (zz * zz.conjugate()).real < 4
-        # for _ in range(self.threshold):
-        #     zz[ind_s] = np.square(zz[ind_s]) + c[ind_s]
-        #     ind_s = (zz * zz.conjugate()).real < 4
-        #     color_chart[ind_s] += 1
-        # color_chart[ind_s] = -1
-        # color_chart = color_chart.reshape((y_arr.shape[0], x_arr.shape[0]))
-        # color_chart = np.ma.masked_where(color_chart == -1, color_chart)
-
-        # return color_chart
+        color_chart = speed(x_arr=x_arr, y_arr=y_arr, threshold=self.threshold, julia=self.julia, c=self.c)
+        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
+        return color_chart
 
     @staticmethod
     def _get_c_map(c_map):
@@ -165,17 +125,17 @@ class Mandelbrot:
 
         (m, x, y) = target
 
-        x_target_len = abs(self.x_max - self.x_min) / m
+        x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
         x_target = (x - x_target_len / 2, x + x_target_len / 2)
 
-        y_target_len = abs(self.y_max - self.y_min) / m
+        y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
         y_target = (y - y_target_len / 2, y + y_target_len / 2)
 
         geom = np.flip(1 - (np.geomspace(1, m, n_frames) - 1) / (m - 1))
         x_ranges = [(x0, x1) for (x0, x1) in
-                    zip(self.x_min + geom * (x_target[0] - self.x_min), self.x_max + geom * (x_target[1] - self.x_max))]
+                    zip(self.x_ran[0] + geom * (x_target[0] - self.x_ran[0]), self.x_ran[1] + geom * (x_target[1] - self.x_ran[1]))]
         y_ranges = [(y0, y1) for (y0, y1) in
-                    zip(self.y_min + geom * (y_target[0] - self.y_min), self.y_max + geom * (y_target[1] - self.y_max))]
+                    zip(self.y_ran[0] + geom * (y_target[0] - self.y_ran[0]), self.y_ran[1] + geom * (y_target[1] - self.y_ran[1]))]
 
         # MULTIPROCESSING
 
