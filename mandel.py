@@ -7,12 +7,12 @@ from mpire import WorkerPool
 from mpire.dashboard import connect_to_dashboard
 import warnings
 import numba as nb
-from p_tqdm import p_umap
-from multiprocessing import Pool
-from tqdm import tqdm
+# from p_tqdm import p_umap
+# from multiprocessing import Pool
+# from tqdm import tqdm
 
 # Maybe see if this can be changed to just overflow error, not the category.
-warnings.filterwarnings("ignore", category=RuntimeWarning)
+# warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 # connect_to_dashboard(8099)
@@ -37,28 +37,13 @@ class Mandelbrot:
             y_ran = (-1.5, 1.5) if not y_ran else y_ran
         return x_ran, y_ran
 
-    def _get_default_dirs(self, filename, frame_subdir):
-        if not filename:
-            filename = str(f'mandelbrot_{self.x_ran}_{self.y_ran}_{self.n_pts}') if not self.julia else str(
-                f'julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',')
-        return filename, frame_subdir
+    # def _get_default_dirs(self, filename, frame_subdir):
+    #     if not filename:
+    #         filename = str(f'mandelbrot_{self.x_ran}_{self.y_ran}_{self.n_pts}') if not self.julia else str(
+    #             f'julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',')
+    #     return filename, frame_subdir
 
     def _determine_color_chart(self):
-        x_min, x_max = self.x_ran
-        y_min, y_max = self.y_ran
-
-        x_len = abs(x_max - x_min)
-        y_len = abs(y_max - y_min)
-
-        x_arr = np.linspace(x_min, x_max, self.n_pts)
-        y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
-
-        color_chart = self._speed(x_arr=x_arr, y_arr=y_arr, threshold=self.threshold, julia=self.julia, c=self.c)
-        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
-        return color_chart
-
-
-    def _speed(self, x_arr, y_arr, threshold, julia, c):
         @nb.jit(nopython=True)
         def mandel_chart(x_arr, y_arr, threshold):
             color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
@@ -85,14 +70,22 @@ class Mandelbrot:
                             color_chart[i, j] = k
                             break
             return color_chart
-        return mandel_chart(x_arr, y_arr, threshold) if not julia else julia_chart(x_arr, y_arr, threshold, c)
 
-    @staticmethod
-    def _get_c_map(c_map):
-        new_c_map = cmx.get_cmap(c_map).copy()
-        new_c_map.set_bad(color='black')
-        return new_c_map
+        x_min, x_max = self.x_ran
+        y_min, y_max = self.y_ran
 
+        x_len = abs(x_max - x_min)
+        y_len = abs(y_max - y_min)
+
+        x_arr = np.linspace(x_min, x_max, self.n_pts)
+        y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
+        
+        color_chart = mandel_chart(x_arr, y_arr, self.threshold) if not self.julia else julia_chart(x_arr, y_arr, self.threshold, self.c)
+        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
+        return color_chart
+
+
+### Plot and save features
     def plot(self, c_map='hsv', pallet_len=250, axis='off', fig_size=None, dpi=100):
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
         c_map = self._get_c_map(c_map)
@@ -120,6 +113,14 @@ class Mandelbrot:
         plt.imsave(fname=f'images/{subdir}{filename}{frame_iter}.{extension}', arr=self.color_chart % pallet_len,
                    origin='upper', cmap=c_map, vmin=0, vmax=pallet_len, format=extension)
 
+    @staticmethod
+    def _get_c_map(c_map):
+        new_c_map = cmx.get_cmap(c_map).copy()
+        new_c_map.set_bad(color='black')
+        return new_c_map
+
+
+### Zoom and spin features
     def zoom(self, filename=None, frame_subdir='frames', target=(6e+4, -1.186592e+0, -1.901211e-1), n_frames=120,
              manager_port_nr=None, n_jobs=os.cpu_count()):
         filename = str(filename) if filename else str(f'zoom_{target}_{n_frames}_frames')
@@ -140,23 +141,22 @@ class Mandelbrot:
         y_ranges = [(y0, y1) for (y0, y1) in
                     zip(self.y_ran[0] + geom * (y_target[0] - self.y_ran[0]), self.y_ran[1] + geom * (y_target[1] - self.y_ran[1]))]
 
-        # MULTIPROCESSING
-
+        ### MULTIPROCESSING
         # inputs = zip(range(n_frames), x_ranges, y_ranges)
         # with Pool() as p:
-        #     list(tqdm(p.imap_unordered(self._single_frame, inputs), total=n_frames))
+        #     list(tqdm(p.imap_unordered(self._single_zoom_frame, inputs), total=n_frames))
 
         # inputs = zip(range(n_frames), x_ranges, y_ranges)
-        # p_umap(self._single_frame, inputs)
+        # p_umap(self._single_zoom_frame, inputs)
 
         inputs = zip(range(n_frames), x_ranges, y_ranges)
         with WorkerPool(n_jobs=n_jobs) as pool:
-            pool.map(self._single_frame, inputs, progress_bar=True, iterable_len=n_frames)
+            pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
 
         self.build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames)
 
-    def _single_frame(self, i, x_cur, y_cur):
-    # def _single_frame(self, inputs):
+    def _single_zoom_frame(self, i, x_cur, y_cur):
+    # def _single_zoom_frame(self, inputs):
         # i, self.x_ran, self.y_ran = inputs
         self.x_ran = x_cur
         self.y_ran = y_cur
@@ -164,12 +164,14 @@ class Mandelbrot:
         self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames/', frame_iter=i)
 
+
     def spin(self, filename=None, frame_subdir='frames', n_frames=60, n_jobs=os.cpu_count()):
         filename = str(filename) if filename else str(f'spin_{self.c}_{n_frames}_frames')
-
         a_ran = np.linspace(0, 2 * np.pi, n_frames)
         modulus = np.abs(self.c)
         c_ran = modulus * np.exp(1j * a_ran)
+
+        # multiprocessing
         inputs = zip(range(n_frames), c_ran)
         with WorkerPool(n_jobs=n_jobs) as pool:
             pool.map(self._single_spin_frame, inputs, progress_bar=True, iterable_len=n_frames)
@@ -180,8 +182,10 @@ class Mandelbrot:
         self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames/', frame_iter=i)
 
+# Creating video
     @staticmethod
     def build_gif(filename, frame_subdir, n_frames):
+        print('Compiling video...')
         with iio.get_writer(f'videos/{filename}.gif', mode='I') as writer:
             for frame in [f'images/{frame_subdir}/frame{i}.png' for i in range(n_frames)]:
                 image = iio.v3.imread(frame)
