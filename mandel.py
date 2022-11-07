@@ -16,7 +16,6 @@ from mpire.dashboard import connect_to_dashboard
 # connect_to_dashboard(8099)
 
 
-
 class Mandelbrot:
     def __init__(self, julia=False, c=(-0.79 + 0.15j), x_ran=None, y_ran=None, n_pts=1000, threshold=1000, filename=None, frame_subdir=None):
         self.julia = julia
@@ -45,7 +44,7 @@ class Mandelbrot:
         if not filename:
             filename = str(f'mandelbrot_{self.x_ran}_{self.y_ran}_{self.n_pts}') if not self.julia else str(f'julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold').replace('.', ',')
         return filename, frame_subdir
-
+    
     def _determine_color_chart(self):
         self.x_min, self.x_max = self.x_ran
         self.y_min, self.y_max = self.y_ran
@@ -67,14 +66,24 @@ class Mandelbrot:
             zz = grid.flatten()
             c = np.full(grid.shape, self.c)
 
-        inds = ~np.isinf(np.abs(zz))
+        # inds = ~np.isinf(np.abs(zz))
+        # for _ in range(self.threshold):
+        #     zz[inds] = np.power(zz[inds], 2) + c[inds]
+        #     inds = ~np.isinf(np.abs(zz))
+        #     color_chart[inds] += 1
+        # color_chart[inds] = 0
+        # color_chart = color_chart.reshape((y_arr.shape[0], x_arr.shape[0]))
+        # color_chart = np.ma.masked_where(color_chart == 0, color_chart)
+
+        # Escape radius is 4
+        inds = (zz*zz.conjugate()).real < 4
         for _ in range(self.threshold):
-            zz[inds] = np.power(zz[inds], 2) + c[inds]
-            inds = ~np.isinf(np.abs(zz))
+            zz[inds] = np.square(zz[inds]) + c[inds]
+            inds = (zz*zz.conjugate()).real < 4
             color_chart[inds] += 1
-        color_chart[inds] = 0
+        color_chart[inds] = -1
         color_chart = color_chart.reshape((y_arr.shape[0], x_arr.shape[0]))
-        color_chart = np.ma.masked_where(color_chart == 0, color_chart)
+        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
 
         return color_chart
 
@@ -109,8 +118,6 @@ class Mandelbrot:
 
     def zoom(self, filename=None, frame_subdir='frames', target=(6e+4,-1.186592e+0,-1.901211e-1), n_frames=120, manager_port_nr=None, n_jobs=os.cpu_count()):
         filename = str(filename) if filename else str(f'zoom_{target}_{n_frames}_frames')
-
-
         if manager_port_nr:
             connect_to_dashboard(manager_port_nr=manager_port_nr, manager_host='localhost')
 
@@ -150,7 +157,9 @@ class Mandelbrot:
         self.save(filename='frame', subdir='frames/', frame_iter=i)
 
 
-    def spin(self, filename='spinVid', frame_subdir='frames', n_frames=60, n_jobs=os.cpu_count()):
+    def spin(self, filename=None, frame_subdir='frames', n_frames=60, n_jobs=os.cpu_count()):
+        filename = str(filename) if filename else str(f'spin_{self.c}_{n_frames}_frames')
+
         a_ran = np.linspace(0, 2*np.pi, n_frames)
         modulus = np.abs(self.c)
         c_ran = modulus*np.exp(1j*a_ran)
@@ -171,8 +180,7 @@ class Mandelbrot:
         self.c = c
         frame_subdir = 'test'
         self.color_chart = self._determine_color_chart()
-        self.save(f'frames/{frame_subdir}/image{i}')
-
+        self.save(filename='frame', subdir='frames/', frame_iter=i)
 
     def build_gif(self, filename, frame_subdir, n_frames):
         with imageio.get_writer(f'videos/{filename}.gif', mode='I') as writer:
