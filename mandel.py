@@ -7,42 +7,15 @@ from mpire import WorkerPool
 from mpire.dashboard import connect_to_dashboard
 import warnings
 import numba as nb
+from p_tqdm import p_umap
+from multiprocessing import Pool
+from tqdm import tqdm
 
 # Maybe see if this can be changed to just overflow error, not the category.
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 # connect_to_dashboard(8099)
-
-
-def speed(x_arr, y_arr, threshold, julia, c):
-    @nb.jit(nopython=True)
-    def mandel_chart(x_arr, y_arr, threshold):
-        color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-        for i in range(len(y_arr)):
-            for j in range(len(x_arr)):
-                c = complex(x_arr[j], y_arr[i])
-                z = 0.0j
-                for k in range(threshold):
-                    z = z * z + c
-                    if (z.real * z.real + z.imag * z.imag) >= 4:
-                        color_chart[i, j] = k
-                        break
-        return color_chart
-
-    @nb.jit(nopython=True)
-    def julia_chart(x_arr, y_arr, threshold, c):
-        color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-        for i in range(len(y_arr)):
-            for j in range(len(x_arr)):
-                z = complex(x_arr[j], y_arr[i])
-                for k in range(threshold):
-                    z = z * z + c
-                    if (z.real * z.real + z.imag * z.imag) >= 4:
-                        color_chart[i, j] = k
-                        break
-        return color_chart
-    return mandel_chart(x_arr, y_arr, threshold) if not julia else julia_chart(x_arr, y_arr, threshold, c)
 
 
 class Mandelbrot:
@@ -80,9 +53,39 @@ class Mandelbrot:
         x_arr = np.linspace(x_min, x_max, self.n_pts)
         y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
 
-        color_chart = speed(x_arr=x_arr, y_arr=y_arr, threshold=self.threshold, julia=self.julia, c=self.c)
+        color_chart = self._speed(x_arr=x_arr, y_arr=y_arr, threshold=self.threshold, julia=self.julia, c=self.c)
         color_chart = np.ma.masked_where(color_chart == -1, color_chart)
         return color_chart
+
+
+    def _speed(self, x_arr, y_arr, threshold, julia, c):
+        @nb.jit(nopython=True)
+        def mandel_chart(x_arr, y_arr, threshold):
+            color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
+            for i in range(len(y_arr)):
+                for j in range(len(x_arr)):
+                    c = complex(x_arr[j], y_arr[i])
+                    z = 0.0j
+                    for k in range(threshold):
+                        z = z * z + c
+                        if (z.real * z.real + z.imag * z.imag) >= 4:
+                            color_chart[i, j] = k
+                            break
+            return color_chart
+
+        @nb.jit(nopython=True)
+        def julia_chart(x_arr, y_arr, threshold, c):
+            color_chart = np.zeros((len(y_arr), len(x_arr))) - 1
+            for i in range(len(y_arr)):
+                for j in range(len(x_arr)):
+                    z = complex(x_arr[j], y_arr[i])
+                    for k in range(threshold):
+                        z = z * z + c
+                        if (z.real * z.real + z.imag * z.imag) >= 4:
+                            color_chart[i, j] = k
+                            break
+            return color_chart
+        return mandel_chart(x_arr, y_arr, threshold) if not julia else julia_chart(x_arr, y_arr, threshold, c)
 
     @staticmethod
     def _get_c_map(c_map):
@@ -139,12 +142,11 @@ class Mandelbrot:
 
         # MULTIPROCESSING
 
-        # inputs = list(enumerate(zip(x_ranges, y_ranges)))
+        # inputs = zip(range(n_frames), x_ranges, y_ranges)
         # with Pool() as p:
-        #     list(tqdm(p.imap_unordered(self._single_frame, inputs), total=len(inputs)))
+        #     list(tqdm(p.imap_unordered(self._single_frame, inputs), total=n_frames))
 
         # inputs = zip(range(n_frames), x_ranges, y_ranges)
-        # # inputs = list(enumerate(zip(x_ranges, y_ranges)))
         # p_umap(self._single_frame, inputs)
 
         inputs = zip(range(n_frames), x_ranges, y_ranges)
@@ -154,9 +156,11 @@ class Mandelbrot:
         self.build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames)
 
     def _single_frame(self, i, x_cur, y_cur):
+    # def _single_frame(self, inputs):
+        # i, self.x_ran, self.y_ran = inputs
         self.x_ran = x_cur
         self.y_ran = y_cur
-        # i, self.x_ran, self.y_ran = inputs
+
         self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames/', frame_iter=i)
 
