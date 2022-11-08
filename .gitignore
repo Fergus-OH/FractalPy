@@ -4,3 +4,5 @@ __init__.py
 *.png
 images/mandel_zoom7.gif
 videos/zoom_(62407000, -0.743643900055, -0.131825890901)_500_frames.gif
+*.gif
+*.mp4
