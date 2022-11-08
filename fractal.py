@@ -7,24 +7,24 @@ from mpire import WorkerPool
 import numba as nb
 
 
-class Mandelbrot:
-    """_summary_
-    """
-
+class Fractal:
+    """A class to represent the Mandelbrot set or Julia set fractals."""
     def __init__(self, julia=False, c=(-0.79 + 0.15j), x_ran=None, y_ran=None, n_pts=1000, threshold=1000, c_map='hsv',
                  pallet_len=250):
-        """_summary_
+        """Initialisees Fractal with either the Mandelbrot set or Julia set along with default attributes.
 
         Args:
             julia (bool, optional): Sets mode to Julia set if true and Mandelbrot set if False. Defaults to False.
-            c (tuple, optional): _description_. Defaults to (-0.79 + 0.15j).
+            c (tuple, optional): Julia set parameter. Defaults to (-0.79 + 0.15j).
             x_ran (tuple, optional): Tuple of minimum and maximum values along x-axis. Defaults to None.
             y_ran (tuple, optional): Tuple of minimum and maximum values along y-axis. Defaults to None.
             n_pts (int, optional): Number of points along x-axis. Defaults to 1000.
-            threshold (int, optional): Number of iterations before determined as being in the set. Defaults to 1000.
-            c_map (str, optional): Color map for plotting. Defaults to 'hsv'.
-            pallet_len (int, optional): Periodic length of pallet. Defaults to 250.
+            threshold (int, optional): Number of iterations before point determined to be in the set. Defaults to 1000.
+            c_map (str, optional): Color map for plots. Defaults to 'hsv'.
+            pallet_len (int, optional): Length of periodicity for color pallet. Defaults to 250.
         """
+
+        print('Initialising object...')
         self.julia = julia
         self.c = c if julia else None
         self.x_ran, self.y_ran = self._get_default_ranges(x_ran, y_ran)
@@ -33,18 +33,9 @@ class Mandelbrot:
         self.c_map = self._get_c_map(c_map)
         self.pallet_len = pallet_len
         self.color_chart = self._determine_color_chart()
-        print('Object initialised, call plot() method to plot image or save() method to save in images directory...')
+        print('Object initialised.')
 
     def _get_default_ranges(self, x_ran, y_ran):
-        """_summary_
-
-        Args:
-            x_ran (_type_): _description_
-            y_ran (_type_): _description_
-
-        Returns:
-            _type_: _description_
-        """
         if not self.julia:
             x_ran = (-2, 1) if not x_ran else x_ran
             y_ran = (-1.5, 1.5) if not y_ran else y_ran
@@ -62,8 +53,6 @@ class Mandelbrot:
 
         x_arr = np.linspace(x_min, x_max, self.n_pts)
         y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
-
-        # Retrieve attributes for jit function
 
         @nb.jit(nopython=True)
         def _mandel_chart(threshold):
@@ -92,41 +81,21 @@ class Mandelbrot:
                             break
             return c_chart
 
-        """
-        x_min, x_max = self.x_ran
-        y_min, y_max = self.y_ran
-
-        x_len = abs(x_max - x_min)
-        y_len = abs(y_max - y_min)
-
-        x_arr = np.linspace(x_min, x_max, self.n_pts)
-        y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
-
-        color_chart = _mandel_chart(x_arr=x_arr, y_arr=y_arr, threshold=self.threshold) if not self.julia\
-            else _julia_chart(x_arr=x_arr, y_arr=y_arr, threshold=self.threshold, c=self.c)
-        """
-
         color_chart = _mandel_chart(threshold=self.threshold) if not self.julia \
             else _julia_chart(threshold=self.threshold, c=self.c)
-        # if not self.julia:
-        #     _mandel_chart()
-        # else:
-        #     _julia_chart()
 
         color_chart = np.ma.masked_where(color_chart == -1, color_chart)
         return color_chart
 
-    # Plot and save features
     def plot(self, axis='off', fig_size=None, dpi=100):
-        """_summary_
+        """Plots the set calculated according to the objects parameters.
 
         Args:
-            axis (str, optional): _description_. Defaults to 'off'.
-            fig_size (_type_, optional): _description_. Defaults to None.
-            dpi (int, optional): _description_. Defaults to 100.
+            axis (str, optional): Axis parameters for plot. Defaults to 'off'.
+            fig_size (tuple, optional): Size of figure in inches for plot. Defaults to None.
+            dpi (int, optional): DPI of plot. Defaults to 100.
         """
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-        # c_map = self._get_c_map(self.c_map)
         ax.imshow(self.color_chart % self.pallet_len, origin='upper', cmap=self.c_map, vmin=0, vmax=self.pallet_len,
                   aspect='equal')
         ax.axis(axis)
@@ -141,15 +110,14 @@ class Mandelbrot:
         plt.show()
 
     def save(self, subdir='', filename=None, frame_iter='', extension='png'):
-        """_summary_
+        """Saves the image of the set in the './images' directory.
 
         Args:
-            subdir (str, optional): _description_. Defaults to ''.
-            filename (_type_, optional): _description_. Defaults to None.
-            frame_iter (str, optional): _description_. Defaults to ''.
-            extension (str, optional): _description_. Defaults to 'png'.
+            subdir (str, optional): A subdirectory of './images' to save the image within. Defaults to ''.
+            filename (_type_, optional): The filename of the saved image. Defaults to None.
+            frame_iter (str, optional): The frame iteration number. Defaults to ''.
+            extension (str, optional): The extension to save the image as. Defaults to 'png'.
         """
-        # c_map = self._get_c_map(self.c_map)
         self._make_dir(os.path.join('images', subdir))
         # setting the default filename
         if not filename:
@@ -157,30 +125,13 @@ class Mandelbrot:
                 else str(f'Julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold')
             filename = str(filename).replace('.', ',').replace(' ', '')
 
-        """
-        if not self.julia:
-            filename = str(f'Mandelbrot_{self.n_pts}pts_{self.threshold}threshold')\
-                if not filename else str(filename)
-        else:
-            filename = str(f'Julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold')\
-            if not filename else str(filename)
-        filename = filename.replace('.', ',').replace(' ', '')
-        """
-
         plt.imsave(fname=f'images/{subdir}/{filename}{frame_iter}.{extension}', arr=self.color_chart % self.pallet_len,
                    origin='upper', cmap=self.c_map, vmin=0, vmax=self.pallet_len, format=extension)
 
     @staticmethod
     def _get_c_map(c_map):
-        """Determines color map for plotting
-
-        Args:
-            c_map (_type_): Colormap
-
-        Returns:
-            _type_: Colormap for masked data points
-        """
         new_c_map = cmx.get_cmap(c_map).copy()
+        # Creating a new color map that maps masked values to black
         new_c_map.set_bad(color='black')
         return new_c_map
 
@@ -192,26 +143,26 @@ class Mandelbrot:
             # directory already exists
             pass
 
-    # Zoom and spin features
     def zoom(self, filename=None, extension='gif', frame_subdir='frames', target=(6e+4, -1.186592e+0, -1.901211e-1),
              n_frames=120,
              fps=60, n_jobs=os.cpu_count()):
-        """_summary_
+        """Compiles a video after generating a sequence of images, beginning with the object's current co-ordinate
+        frame and finishing at the target location.
 
         Args:
-            filename (_type_, optional): Name of output gif file. Defaults to None.
-            extension (, optional): Extension. Defaults to 'gif'.
-            frame_subdir (str, optional): Directory to save frames. Defaults to 'frames'.
-            target (tuple, optional): Target zoom location. Defaults to (6e+4, -1.186592e+0, -1.901211e-1).
-            n_frames (int, optional): Number of frames. Defaults to 120.
-            fps (int, optional): Frames per second for output gif. Defaults to 60.
-            n_jobs (_type_, optional): Number of workers for parallel processing. Defaults to os.cpu_count().
+            filename (str, optional): Name of output file. Defaults to None.
+            extension (str, optional): Extension of the output file format. Defaults to 'gif'.
+            frame_subdir (str, optional): Directory to save image frames. Defaults to 'frames'.
+            target (tuple, optional): Target location for the end of zoom. The first tuple entry is the zoom magnitude
+                of the target location with x, y coordinates. Defaults to (6e+4, -1.186592e+0, -1.901211e-1).
+            n_frames (int, optional): Number of total frames compiled. n_frames-2 frames are compiled intermediately
+                between the initial frame and target frame. Defaults to 120.
+            fps (int, optional): Number of frames per second for output video. This determines the smoothness between
+                frames and affects the length of the output video. Defaults to 60.
+            n_jobs (int, optional): Number of workers for parallel processing. Defaults to os.cpu_count().
         """
 
-        # manager_port_nr=None,
-        # if manager_port_nr:
-        #     connect_to_dashboard(manager_port_nr=manager_port_nr, manager_host='localhost')
-
+        # Unpacking zoom scale and target co-ordinates from target parameters
         (m, x, y) = target
 
         x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
@@ -220,6 +171,7 @@ class Mandelbrot:
         y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
         y_target = (y - y_target_len / 2, y + y_target_len / 2)
 
+        # Creating a geometric sequence for frames to correspond to smooth zooming
         geom = np.flip(1 - (np.geomspace(1, m, n_frames) - 1) / (m - 1))
         x_ranges = [(x0, x1) for (x0, x1) in
                     zip(self.x_ran[0] + geom * (x_target[0] - self.x_ran[0]),
@@ -254,15 +206,6 @@ class Mandelbrot:
                             fps=fps)
 
     def _single_zoom_frame(self, i, x_cur, y_cur):
-        """_summary_
-
-        Args:
-            i (_type_): _description_
-            x_cur (_type_): _description_
-            y_cur (_type_): _description_
-        """
-        # def _single_zoom_frame(self, inputs):
-        # i, self.x_ran, self.y_ran = inputs
         self.x_ran = x_cur
         self.y_ran = y_cur
 
@@ -270,7 +213,7 @@ class Mandelbrot:
         self.save(filename='frame', subdir='frames', frame_iter=i)
 
     def spin(self, filename=None, extension='gif', frame_subdir='frames', n_frames=60, fps=60, n_jobs=os.cpu_count()):
-        """_summary_
+        """Creates a sequence of images beginning with the objects current co-ordinate frame and finishing at the target location.
 
         Args:
             filename (_type_, optional): _description_. Defaults to None.
@@ -301,30 +244,15 @@ class Mandelbrot:
                             fps=fps)
 
     def _single_spin_frame(self, i, c):
-        """_summary_
-
-        Args:
-            i (_type_): _description_
-            c (_type_): _description_
-        """
         self.c = c
         self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames', frame_iter=i)
 
-    # Creating gif
     @staticmethod
     def _build_gif(filename, frame_subdir, n_frames, fps, end_buffer):
-        """Compiles gif from frames
-
-        Args:
-            filename (_type_): _description_
-            frame_subdir (_type_): _description_
-            n_frames (_type_): _description_
-            fps (_type_): _description_
-            end_buffer (_type_): _description_
-        """
+        """Compiles gif from images located in the frame subdirectory"""
         print('Compiling gif...')
-        Mandelbrot._make_dir('gifs')
+        Fractal._make_dir('gifs')
         with iio.get_writer(f'gifs/{filename}.gif', mode='I', fps=fps) as writer:
             for frame in [f'images/{frame_subdir}/frame{i}.png' for i in range(n_frames)]:
                 image = iio.v3.imread(frame)
@@ -335,16 +263,8 @@ class Mandelbrot:
 
     @staticmethod
     def _build_vid(filename, extension, frame_subdir, n_frames, fps):
-        """_summary_
-
-        Args:
-            filename (_type_): _description_
-            extension (_type_): _description_
-            frame_subdir (_type_): _description_
-            n_frames (_type_): _description_
-            fps (_type_): _description_
-        """
-        Mandelbrot._make_dir('videos')
+        """Compiles video from images located in the frame subdirectory"""
+        Fractal._make_dir('videos')
         filename = filename.replace('(', '\(').replace(')', '\)')
         cmd = f'ffmpeg -framerate {fps} -i ' \
               f'./images/{frame_subdir}/frame%d.png ' \

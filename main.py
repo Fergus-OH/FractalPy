@@ -1,4 +1,4 @@
-from mandel import Mandelbrot
+from fractal import Fractal
 
 
 def __main__():
@@ -17,7 +17,7 @@ def __main__():
     # Mandelbrot(x_ran=x_target, y_ran=y_target, threshold=5000).plot(dpi=100, axis='on')
     # Mandelbrot(x_ran=x_init, y_ran=y_init, threshold=5000, n_pts=360, pallet_len=25).zoom(n_frames=100, target=target)
     # Mandelbrot(x_ran=x_init, y_ran=y_init, threshold=5000, n_pts=3456).zoom(target=target, n_frames=1000)
-    Mandelbrot(x_ran=x_init, y_ran=y_init, threshold=5000, n_pts=1920).zoom(target=target, n_frames=5000)
+    Fractal(x_ran=x_init, y_ran=y_init, threshold=5000, n_pts=1920).zoom(target=target, n_frames=5000)
     # Mandelbrot(julia=True, threshold=1000, n_pts=3456, pallet_len=25).spin(n_frames=500)
 
 if __name__ == '__main__':
