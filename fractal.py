@@ -18,7 +18,7 @@ class Fractal:
             c (tuple, optional): Julia set parameter. Defaults to (-0.79 + 0.15j).
             x_ran (tuple, optional): Tuple of minimum and maximum values along x-axis. Defaults to None.
             y_ran (tuple, optional): Tuple of minimum and maximum values along y-axis. Defaults to None.
-            n_pts (int, optional): Number of points along x-axis. Defaults to 1000.
+            n_pts (int, optional): Number of points along y-axis. Defaults to 1000.
             threshold (int, optional): Number of iterations before point determined to be in the set. Defaults to 1000.
             c_map (str, optional): Color map for plots. Defaults to 'hsv'.
             pallet_len (int, optional): Length of periodicity for color pallet. Defaults to 250.
@@ -51,8 +51,8 @@ class Fractal:
         x_len = abs(x_max - x_min)
         y_len = abs(y_max - y_min)
 
-        x_arr = np.linspace(x_min, x_max, self.n_pts)
-        y_arr = np.linspace(y_max, y_min, int(self.n_pts * y_len / x_len))
+        x_arr = np.linspace(x_min, x_max, int(self.n_pts* x_len / y_len))
+        y_arr = np.linspace(y_max, y_min, self.n_pts)
 
         @nb.jit(nopython=True)
         def _mandel_chart(threshold):
