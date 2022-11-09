@@ -87,7 +87,7 @@ class Fractal:
         color_chart = np.ma.masked_where(color_chart == -1, color_chart)
         return color_chart
 
-    def plot(self, axis='off', fig_size=None, dpi=100):
+    def plot(self, axis='off', fig_size=None, dpi=150):
         """Plots the set calculated according to the objects parameters.
 
         Args:
@@ -163,13 +163,16 @@ class Fractal:
         """
 
         # Unpacking zoom scale and target co-ordinates from target parameters
-        (m, x, y) = target
+        # (m, x, y) = target
 
-        x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
-        x_target = (x - x_target_len / 2, x + x_target_len / 2)
+        # x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
+        # x_target = (x - x_target_len / 2, x + x_target_len / 2)
 
-        y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
-        y_target = (y - y_target_len / 2, y + y_target_len / 2)
+        # y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
+        # y_target = (y - y_target_len / 2, y + y_target_len / 2)
+
+        x_target, y_target = self.get_target_rans(target)
+        m = target[0]
 
         # Creating a geometric sequence for frames to correspond to smooth zooming
         geom = np.flip(1 - (np.geomspace(1, m, n_frames) - 1) / (m - 1))
@@ -211,6 +214,19 @@ class Fractal:
 
         self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames', frame_iter=i)
+
+    def get_target_rans(self, target):
+        (m, x, y) = target
+
+        x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
+        x_target = (x - x_target_len / 2, x + x_target_len / 2)
+
+        y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
+        y_target = (y - y_target_len / 2, y + y_target_len / 2)
+
+        return x_target, y_target
+
+
 
     def spin(self, filename=None, extension='gif', frame_subdir='frames', n_frames=60, fps=60, n_jobs=os.cpu_count()):
         """Creates a sequence of images beginning with the objects current co-ordinate frame and finishing at the target location.
