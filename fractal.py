@@ -10,7 +10,7 @@ import numba as nb
 class Fractal:
     """A class to represent the Mandelbrot set or Julia set fractals."""
     def __init__(self, julia=False, c=(-0.79 + 0.15j), x_ran=None, y_ran=None, n_pts=1000, threshold=1000, c_map='hsv',
-                 pallet_len=250):
+                 pallet_len=250, shift=0):
         """Initialisees Fractal with either the Mandelbrot set or Julia set along with default attributes.
 
         Args:
@@ -32,6 +32,7 @@ class Fractal:
         self.threshold = threshold
         self.c_map = self._get_c_map(c_map)
         self.pallet_len = pallet_len
+        self.shift = shift
         self.color_chart = self._determine_color_chart()
         print('Object initialised.')
 
@@ -85,6 +86,7 @@ class Fractal:
             else _julia_chart(threshold=self.threshold, c=self.c)
 
         color_chart = np.ma.masked_where(color_chart == -1, color_chart)
+        color_chart += self.shift
         return color_chart
 
     def plot(self, axis='off', fig_size=None, dpi=150):
