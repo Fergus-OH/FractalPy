@@ -4,7 +4,7 @@
 </p>
 
 Consider the recurrence relation $z_{n+1} = z_n^2 + c$ where $c$ is a complex number.
-The Mandelbrot set is a fractal, defined by the set of complex numbers $c$ for which this recurrence relation, with initial value $z_0 = 0, does not diverge$.
+The Mandelbrot set is a fractal, defined by the set of complex numbers $c$ for which this recurrence relation, with initial value $z_0 = 0$, does not diverge$.
 Another interesting set related to the Mandelbrot set are Julia sets, which are defined for a specific complex number $c$.
 To keep things brief, we will just establish the definition for a filled-in Julia set and do so in the following way:
 The filled-in Julia set of a complex number $c$ is the set of initial values $z_0$ for which the previously mentioned recurrence relation does not diverge.
