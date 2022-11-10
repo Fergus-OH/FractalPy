@@ -5,6 +5,7 @@ import imageio as iio
 import os
 from mpire import WorkerPool
 import numba as nb
+from math import ceil
 
 
 class Fractal:
@@ -22,6 +23,7 @@ class Fractal:
             threshold (int, optional): Number of iterations before point determined to be in the set. Defaults to 1000.
             c_map (str, optional): Color map for plots. Defaults to 'hsv'.
             pallet_len (int, optional): Length of periodicity for color pallet. Defaults to 250.
+            shift (int, optional): Length to shift color pallet. Defaults to 0.
         """
 
         print('Initialising object...')
@@ -52,7 +54,7 @@ class Fractal:
         x_len = abs(x_max - x_min)
         y_len = abs(y_max - y_min)
 
-        x_arr = np.linspace(x_min, x_max, int(self.n_pts* x_len / y_len))
+        x_arr = np.linspace(x_min, x_max, ceil(self.n_pts* x_len / y_len))
         y_arr = np.linspace(y_max, y_min, self.n_pts)
 
         @nb.jit(nopython=True)
