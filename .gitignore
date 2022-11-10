@@ -1,7 +1,6 @@
 .DS_Store
 __pycache__
 __init__.py
-*.png
-images/mandel_zoom7.gif
-*.mp4
+images/*
+videos/*
 gifs/*
