@@ -12,7 +12,7 @@ class Fractal:
     """A class to represent the Mandelbrot set or Julia set fractals."""
     def __init__(self, julia=False, c=(-0.79 + 0.15j), x_ran=None, y_ran=None, n_pts=1000, threshold=1000, c_map='hsv',
                  pallet_len=250, shift=0):
-        """Initialisees Fractal with either the Mandelbrot set or Julia set along with default attributes.
+        """Initialises Fractal with either the Mandelbrot set or Julia set along with default attributes.
 
         Args:
             julia (bool, optional): Sets mode to Julia set if true and Mandelbrot set if False. Defaults to False.
@@ -54,14 +54,14 @@ class Fractal:
         x_len = abs(x_max - x_min)
         y_len = abs(y_max - y_min)
 
-        x_arr = np.linspace(x_min, x_max, ceil(self.n_pts* x_len / y_len))
+        x_arr = np.linspace(x_min, x_max, ceil(self.n_pts * x_len / y_len))
         y_arr = np.linspace(y_max, y_min, self.n_pts)
 
-        @nb.jit(nopython=True)
+        @nb.jit(nopython=True, parallel=True)
         def _mandel_chart(threshold):
             c_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-            for i in range(len(y_arr)):
-                for j in range(len(x_arr)):
+            for i in nb.prange(len(y_arr)):
+                for j in nb.prange(len(x_arr)):
                     c = complex(x_arr[j], y_arr[i])
                     z = 0.0j
                     for k in range(threshold):
@@ -71,11 +71,11 @@ class Fractal:
                             break
             return c_chart
 
-        @nb.jit(nopython=True)
+        @nb.jit(nopython=True, parallel=True)
         def _julia_chart(threshold, c):
             c_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-            for i in range(len(y_arr)):
-                for j in range(len(x_arr)):
+            for i in nb.prange(len(y_arr)):
+                for j in nb.prange(len(x_arr)):
                     z = complex(x_arr[j], y_arr[i])
                     for k in range(threshold):
                         z = z * z + c
@@ -175,7 +175,7 @@ class Fractal:
         # y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
         # y_target = (y - y_target_len / 2, y + y_target_len / 2)
 
-        x_target, y_target = self.get_target_rans(target)
+        x_target, y_target = self.get_target_ranges(target)
         m = target[0]
 
         # Creating a geometric sequence for frames to correspond to smooth zooming
@@ -219,7 +219,7 @@ class Fractal:
         self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames', frame_iter=i)
 
-    def get_target_rans(self, target):
+    def get_target_ranges(self, target):
         (m, x, y) = target
 
         x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
@@ -230,10 +230,9 @@ class Fractal:
 
         return x_target, y_target
 
-
-
     def spin(self, filename=None, extension='gif', frame_subdir='frames', n_frames=60, fps=60, n_jobs=os.cpu_count()):
-        """Creates a sequence of images beginning with the objects current co-ordinate frame and finishing at the target location.
+        """Creates a sequence of images beginning with the objects current co-ordinate frame and finishing at the target
+         location.
 
         Args:
             filename (_type_, optional): _description_. Defaults to None.
@@ -286,18 +285,21 @@ class Fractal:
         """Compiles video from images located in the frame subdirectory"""
         Fractal._make_dir('videos')
         filename = filename.replace('(', '\(').replace(')', '\)')
-        cmd = f'ffmpeg -framerate {fps} -i ' \
-              f'./images/{frame_subdir}/frame%d.png ' \
-              f'-frames:v {n_frames} ' \
-              f'-c:v libx265 ' \
-              f'-vtag hvc1 ' \
-              f'-filter:v "scale=in_color_matrix=auto:in_range=auto:out_color_matrix=bt709:out_range=tv" ' \
-              f'-pix_fmt:v "yuv420p" ' \
-              f'-colorspace:v "bt709" ' \
-              f'-color_primaries:v "bt709" ' \
-              f'-color_trc:v "bt709" ' \
-              f'-color_range:v "tv" ' \
-              f'-c:a copy ' \
-              f'-r {fps} ' \
-              f'./videos/{filename}.{extension} '
-        os.system(f'/bin/bash -c "{cmd}"')
+        list_of_commands = [
+            f'-framerate {fps} -i',
+            f'./images/{frame_subdir}/frame%d.png',
+            f'-frames:v {n_frames}',
+            f'-c:v libx265',
+            f'-vtag hvc1',
+            f'-filter:v "scale=in_color_matrix=auto:in_range=auto:out_color_matrix=bt709:out_range=tv"',
+            f'-pix_fmt:v "yuv420p"',
+            f'-colorspace:v "bt709"',
+            f'-color_primaries:v "bt709"',
+            f'-color_trc:v "bt709"',
+            f'-color_range:v "tv"',
+            f'-c:a copy',
+            f'-r {fps}',
+            f'./videos/{filename}.{extension}'
+        ]
+        command = "ffmpeg " + " ".join(list_of_commands)
+        os.system(command)
