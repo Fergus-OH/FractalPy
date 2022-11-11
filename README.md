@@ -26,3 +26,12 @@ It is recommended to create a virtual environment using conda or venv and instal
 ```
 pip install -r requirements.txt
 ```
+
+<!-- ```
+Fractal().
+```
+
+
+A notebook with demos can be found [here](https://nbviewer.org/github/Fergus-OH/mandelbrot-julia-sets/blob/numba/demos.ipynb)
+
+<a href="https://nbviewer.org/github/Fergus-OH/mandelbrot-julia-sets/blob/numba/demos.ipynb"><img src="https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg" alt="Render nbviewer" /></a> -->

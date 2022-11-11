@@ -10,8 +10,18 @@ from math import ceil
 
 class Fractal:
     """A class to represent the Mandelbrot set or Julia set fractals."""
-    def __init__(self, julia=False, c=(-0.79 + 0.15j), x_ran=None, y_ran=None, n_pts=1000, threshold=1000, c_map='hsv',
-                 pallet_len=250, shift=0):
+    def __init__(
+            self,
+            julia=False,
+            c=(-0.79 + 0.15j),
+            x_ran=None,
+            y_ran=None,
+            n_pts=1000,
+            threshold=1000,
+            c_map='hsv',
+            pallet_len=250,
+            shift=0
+    ):
         """Initialises Fractal with either the Mandelbrot set or Julia set along with default attributes.
 
         Args:
@@ -147,9 +157,16 @@ class Fractal:
             # directory already exists
             pass
 
-    def zoom(self, filename=None, extension='gif', frame_subdir='frames', target=(6e+4, -1.186592e+0, -1.901211e-1),
-             n_frames=120,
-             fps=60, n_jobs=os.cpu_count()):
+    def zoom(
+            self,
+            filename=None,
+            extension='gif',
+            frame_subdir='frames',
+            target=(6e+4, -1.186592e+0, -1.901211e-1),
+            n_frames=120,
+            fps=60,
+            n_jobs=os.cpu_count()
+    ):
         """Compiles a video after generating a sequence of images, beginning with the object's current co-ordinate
         frame and finishing at the target location.
 
@@ -230,7 +247,15 @@ class Fractal:
 
         return x_target, y_target
 
-    def spin(self, filename=None, extension='gif', frame_subdir='frames', n_frames=60, fps=60, n_jobs=os.cpu_count()):
+    def spin(
+            self,
+            filename=None,
+            extension='gif',
+            frame_subdir='frames',
+            n_frames=60,
+            fps=60,
+            n_jobs=os.cpu_count()
+    ):
         """Creates a sequence of images beginning with the objects current co-ordinate frame and finishing at the target
          location.
 
