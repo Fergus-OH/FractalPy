@@ -6,58 +6,52 @@ import os
 from mpire import WorkerPool
 import numba as nb
 from math import ceil
+from abc import ABC, abstractmethod
 
 
-class Fractal:
+class FractalBase(ABC):
     """A class to represent the Mandelbrot set or Julia set fractals."""
-    def __init__(
-            self,
-            julia=False,
-            c=(-0.79 + 0.15j),
-            x_ran=None,
-            y_ran=None,
-            n_pts=1000,
-            threshold=1000,
-            c_map='hsv',
-            pallet_len=250,
-            shift=0
-    ):
+
+    def __init__(self,
+                 x_ran,
+                 y_ran,
+                 n_pts=1000,
+                 threshold=1000,
+                 color_map='hsv',
+                 c_set='black',
+                 pallet_len=250,
+                 color_map_shift=0
+                 ):
         """Initialises Fractal with either the Mandelbrot set or Julia set along with default attributes.
 
         Args:
-            julia (bool, optional): Sets mode to Julia set if true and Mandelbrot set if False. Defaults to False.
-            c (tuple, optional): Julia set parameter. Defaults to (-0.79 + 0.15j).
+            # julia (bool, optional): Sets mode to Julia set if true and Mandelbrot set if False. Defaults to False.
+            # c (tuple, optional): Julia set parameter. Defaults to (-0.79 + 0.15j).
             x_ran (tuple, optional): Tuple of minimum and maximum values along x-axis. Defaults to None.
             y_ran (tuple, optional): Tuple of minimum and maximum values along y-axis. Defaults to None.
             n_pts (int, optional): Number of points along y-axis. Defaults to 1000.
             threshold (int, optional): Number of iterations before point determined to be in the set. Defaults to 1000.
-            c_map (str, optional): Color map for plots. Defaults to 'hsv'.
+            color_map (str, optional): Color map for plots. Defaults to 'hsv'.
             pallet_len (int, optional): Length of periodicity for color pallet. Defaults to 250.
-            shift (int, optional): Length to shift color pallet. Defaults to 0.
+            color_map_shift (int, optional): Length to shift color pallet. Defaults to 0.
         """
 
-        print('Initialising object...')
-        self.julia = julia
-        self.c = c if julia else None
-        self.x_ran, self.y_ran = self._get_default_ranges(x_ran, y_ran)
+        self.x_ran = x_ran
+        self.y_ran = y_ran
+
         self.n_pts = n_pts
         self.threshold = threshold
-        self.c_map = self._get_c_map(c_map)
+
+        self.set_color = c_set
+        self._color_map = None
+        self.color_map = color_map
         self.pallet_len = pallet_len
-        self.shift = shift
-        self.color_chart = self._determine_color_chart()
+        self.color_map_shift = color_map_shift
+
         print('Object initialised.')
 
-    def _get_default_ranges(self, x_ran, y_ran):
-        if not self.julia:
-            x_ran = (-2, 1) if not x_ran else x_ran
-            y_ran = (-1.5, 1.5) if not y_ran else y_ran
-        else:
-            x_ran = (-1.5, 1.5) if not x_ran else x_ran
-            y_ran = (-1.5, 1.5) if not y_ran else y_ran
-        return x_ran, y_ran
-
-    def _determine_color_chart(self):
+    @property
+    def x_y_ranges(self):
         x_min, x_max = self.x_ran
         y_min, y_max = self.y_ran
 
@@ -66,41 +60,25 @@ class Fractal:
 
         x_arr = np.linspace(x_min, x_max, ceil(self.n_pts * x_len / y_len))
         y_arr = np.linspace(y_max, y_min, self.n_pts)
+        return x_arr, y_arr
 
-        @nb.jit(nopython=True, parallel=True)
-        def _mandel_chart(threshold):
-            c_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-            for i in nb.prange(len(y_arr)):
-                for j in nb.prange(len(x_arr)):
-                    c = complex(x_arr[j], y_arr[i])
-                    z = 0.0j
-                    for k in range(threshold):
-                        z = z * z + c
-                        if (z.real * z.real + z.imag * z.imag) >= 4:
-                            c_chart[i, j] = k
-                            break
-            return c_chart
+    @property
+    def color_map(self):
+        return self._color_map
 
-        @nb.jit(nopython=True, parallel=True)
-        def _julia_chart(threshold, c):
-            c_chart = np.zeros((len(y_arr), len(x_arr))) - 1
-            for i in nb.prange(len(y_arr)):
-                for j in nb.prange(len(x_arr)):
-                    z = complex(x_arr[j], y_arr[i])
-                    for k in range(threshold):
-                        z = z * z + c
-                        if (z.real * z.real + z.imag * z.imag) >= 4:
-                            c_chart[i, j] = k
-                            break
-            return c_chart
+    @color_map.setter
+    def color_map(self, c_map):
+        new_c_map = cmx.get_cmap(c_map).copy()
+        # Creating a new color map that maps masked values to black
+        new_c_map.set_bad(color=self.set_color)
+        self._color_map = new_c_map
 
-        color_chart = _mandel_chart(threshold=self.threshold) if not self.julia \
-            else _julia_chart(threshold=self.threshold, c=self.c)
+    @property
+    @abstractmethod
+    def _color_chart(self):
+        pass
 
-        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
-        color_chart += self.shift
-        return color_chart
-
+    @abstractmethod
     def plot(self, axis='off', fig_size=None, dpi=150):
         """Plots the set calculated according to the objects parameters.
 
@@ -110,7 +88,11 @@ class Fractal:
             dpi (int, optional): DPI of plot. Defaults to 100.
         """
         fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-        ax.imshow(self.color_chart % self.pallet_len, origin='upper', cmap=self.c_map, vmin=0, vmax=self.pallet_len,
+        ax.imshow(self._color_chart % self.pallet_len,
+                  origin='upper',
+                  cmap=self.color_map,
+                  vmin=0,
+                  vmax=self.pallet_len,
                   aspect='equal')
         ax.axis(axis)
 
@@ -123,31 +105,37 @@ class Fractal:
         ax.set_yticklabels(np.linspace(self.y_ran[0], self.y_ran[1], 5))
         plt.show()
 
-    def save(self, subdir='', filename=None, frame_iter='', extension='png'):
+    @abstractmethod
+    def save(self, filename, subdir='', frame_iter='', extension='png'):
         """Saves the image of the set in the './images' directory.
 
         Args:
             subdir (str, optional): A subdirectory of './images' to save the image within. Defaults to ''.
-            filename (_type_, optional): The filename of the saved image. Defaults to None.
+            filename (_type_): The filename of the saved image. Defaults to None.
             frame_iter (str, optional): The frame iteration number. Defaults to ''.
             extension (str, optional): The extension to save the image as. Defaults to 'png'.
         """
         self._make_dir(os.path.join('images', subdir))
-        # setting the default filename
-        if not filename:
-            filename = str(f'Mandelbrot_{self.n_pts}pts_{self.threshold}threshold') if not self.julia \
-                else str(f'Julia_{self.c}_{self.n_pts}pts_{self.threshold}threshold')
-            filename = str(filename).replace('.', ',').replace(' ', '')
 
-        plt.imsave(fname=f'images/{subdir}/{filename}{frame_iter}.{extension}', arr=self.color_chart % self.pallet_len,
-                   origin='upper', cmap=self.c_map, vmin=0, vmax=self.pallet_len, format=extension)
+        plt.imsave(fname=f'images/{subdir}/{filename}{frame_iter}.{extension}',
+                   arr=self._color_chart % self.pallet_len,
+                   origin='upper',
+                   cmap=self.color_map,
+                   vmin=0,
+                   vmax=self.pallet_len,
+                   format=extension)
+        # print(f'Image saved at {subdir}')
 
-    @staticmethod
-    def _get_c_map(c_map):
-        new_c_map = cmx.get_cmap(c_map).copy()
-        # Creating a new color map that maps masked values to black
-        new_c_map.set_bad(color='black')
-        return new_c_map
+        # TODO: consider implementing a _frame_save method and then print where the file is saved for the save method
+
+    def save_frame(self, filename, frame_dir, frame_iter, extension='png'):
+        plt.imsave(fname=f'images/{frame_dir}/{filename}{frame_iter}.{extension}',
+                   arr=self._color_chart % self.pallet_len,
+                   origin='upper',
+                   cmap=self.color_map,
+                   vmin=0,
+                   vmax=self.pallet_len,
+                   format=extension)
 
     @staticmethod
     def _make_dir(path):
@@ -157,16 +145,16 @@ class Fractal:
             # directory already exists
             pass
 
-    def zoom(
-            self,
-            filename=None,
-            extension='gif',
-            frame_subdir='frames',
-            target=(6e+4, -1.186592e+0, -1.901211e-1),
-            n_frames=120,
-            fps=60,
-            n_jobs=os.cpu_count()
-    ):
+    @abstractmethod
+    def zoom(self,
+             target,
+             filename=None,
+             extension='gif',
+             frame_subdir='frames',
+             n_frames=120,
+             fps=60,
+             n_jobs=os.cpu_count()
+             ):
         """Compiles a video after generating a sequence of images, beginning with the object's current co-ordinate
         frame and finishing at the target location.
 
@@ -184,14 +172,6 @@ class Fractal:
         """
 
         # Unpacking zoom scale and target co-ordinates from target parameters
-        # (m, x, y) = target
-
-        # x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
-        # x_target = (x - x_target_len / 2, x + x_target_len / 2)
-
-        # y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
-        # y_target = (y - y_target_len / 2, y + y_target_len / 2)
-
         x_target, y_target = self.get_target_ranges(target)
         m = target[0]
 
@@ -223,17 +203,21 @@ class Fractal:
         filename = str(filename).replace('.', ',').replace(' ', '')
 
         if extension == 'gif':
-            self._build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames, fps=fps,
+            self._build_gif(filename=filename,
+                            frame_subdir=frame_subdir,
+                            n_frames=n_frames,
+                            fps=fps,
                             end_buffer=2 * fps)
         else:
-            self._build_vid(filename=filename, extension=extension, frame_subdir=frame_subdir, n_frames=n_frames,
+            self._build_vid(filename=filename,
+                            extension=extension,
+                            frame_subdir=frame_subdir,
+                            n_frames=n_frames,
                             fps=fps)
 
     def _single_zoom_frame(self, i, x_cur, y_cur):
         self.x_ran = x_cur
         self.y_ran = y_cur
-
-        self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames', frame_iter=i)
 
     def get_target_ranges(self, target):
@@ -247,15 +231,134 @@ class Fractal:
 
         return x_target, y_target
 
-    def spin(
-            self,
-            filename=None,
-            extension='gif',
-            frame_subdir='frames',
-            n_frames=60,
-            fps=60,
-            n_jobs=os.cpu_count()
-    ):
+    @classmethod
+    def _build_gif(cls, filename, frame_subdir, n_frames, fps, end_buffer):
+        print(cls.__name__)
+        """Compiles gif from images located in the frame subdirectory"""
+        print('Compiling gif...')
+        cls._make_dir('gifs')
+        with iio.get_writer(f'gifs/{filename}.gif', mode='I', fps=fps) as writer:
+            for frame in [f'images/{frame_subdir}/frame{i}.png' for i in range(n_frames)]:
+                image = iio.v3.imread(frame)
+                writer.append_data(image)
+            for _ in range(end_buffer):
+                writer.append_data(image)
+        print(f'Completed, gif saved at \'gifs/{filename}.gif\'')
+
+    @classmethod
+    def _build_vid(cls, filename, extension, frame_subdir, n_frames, fps):
+        """Compiles video from images located in the frame subdirectory"""
+        cls._make_dir('videos')
+        filename = filename.replace('(', '\(').replace(')', '\)')
+        list_of_commands = [
+            f'-framerate {fps} -i',
+            f'./images/{frame_subdir}/frame%d.png',
+            f'-frames:v {n_frames}',
+            f'-c:v libx265',
+            f'-vtag hvc1',
+            f'-filter:v "scale=in_color_matrix=auto:in_range=auto:out_color_matrix=bt709:out_range=tv"',
+            f'-pix_fmt:v "yuv420p"',
+            f'-colorspace:v "bt709"',
+            f'-color_primaries:v "bt709"',
+            f'-color_trc:v "bt709"',
+            f'-color_range:v "tv"',
+            f'-c:a copy',
+            f'-r {fps}',
+            f'./videos/{filename}.{extension}'
+        ]
+        command = "ffmpeg " + " ".join(list_of_commands)
+        os.system(command)
+        print(f'Completed, {extension} saved at \'videos/{filename}.{extension}\'')
+
+
+class Mandelbrot(FractalBase):
+    def __init__(self, x_ran=(-2, 1), y_ran=(-1.5, 1.5), **kwargs):
+        super().__init__(x_ran, y_ran, **kwargs)
+
+    @property
+    def _color_chart(self):
+        x_arr, y_arr = self.x_y_ranges
+
+        @nb.jit(nopython=True, parallel=True)
+        def _mandel_chart(threshold):
+            c_chart = np.zeros((len(y_arr), len(x_arr))) - 1
+            for i in nb.prange(len(y_arr)):
+                for j in nb.prange(len(x_arr)):
+                    c = complex(x_arr[j], y_arr[i])
+                    z = 0.0j
+                    for k in range(threshold):
+                        z = z * z + c
+                        if (z.real * z.real + z.imag * z.imag) >= 4:
+                            c_chart[i, j] = k
+                            break
+            return c_chart
+
+        color_chart = _mandel_chart(threshold=self.threshold)
+        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
+        color_chart += self.color_map_shift
+        return color_chart
+
+    def plot(self, **kwargs):
+        super().plot(**kwargs)
+
+    def save(self, filename='', **kwargs):
+        if not filename:
+            filename = str(f'{self.__class__.__name__}_{self.n_pts}pts_{self.threshold}threshold')
+            print(filename)
+            print(self.__class__.__name__)
+        super().save(filename, **kwargs)
+
+    def zoom(self, target=(6e+4, -1.186592e+0, -1.901211e-1), **kwargs):
+        super().zoom(target, **kwargs)
+
+
+class Julia(FractalBase):
+    def __init__(self, c=(-0.79 + 0.15j), x_ran=(-1.5, 1.5), y_ran=(-1.5, 1.5), **kwargs):
+        super().__init__(x_ran, y_ran, **kwargs)
+        self.c = c
+
+    @property
+    def _color_chart(self):
+        x_arr, y_arr = self.x_y_ranges
+
+        @nb.jit(nopython=True, parallel=True)
+        def _julia_chart(threshold, c):
+            c_chart = np.zeros((len(y_arr), len(x_arr))) - 1
+            for i in nb.prange(len(y_arr)):
+                for j in nb.prange(len(x_arr)):
+                    z = complex(x_arr[j], y_arr[i])
+                    for k in range(threshold):
+                        z = z * z + c
+                        if (z.real * z.real + z.imag * z.imag) >= 4:
+                            c_chart[i, j] = k
+                            break
+            return c_chart
+
+        color_chart = _julia_chart(threshold=self.threshold, c=self.c)
+        color_chart = np.ma.masked_where(color_chart == -1, color_chart)
+        color_chart += self.color_map_shift
+        return color_chart
+
+    def plot(self, **kwargs):
+        super().plot(**kwargs)
+
+    def save(self, filename='', **kwargs):
+        if not filename:
+            filename = str(f'{self.__class__.__name__}_{self.c}_{self.n_pts}pts_{self.threshold}threshold')
+            filename = str(filename).replace('.', ',').replace(' ', '')  # TODO: is the second replace necessary anymore
+        super().save(filename=filename, **kwargs)
+
+    def zoom(self, target, **kwargs):
+        super().zoom(target)
+
+    def spin(self,
+             filename=None,
+             extension='gif',
+             frame_subdir='frames',
+             n_frames=60,
+             fps=60,
+             n_jobs=os.cpu_count()
+             ):
         """Creates a sequence of images beginning with the objects current co-ordinate frame and finishing at the target
          location.
 
@@ -282,49 +385,18 @@ class Fractal:
         filename = str(filename).replace('.', ',').replace(' ', '')
 
         if extension == 'gif':
-            self._build_gif(filename=filename, frame_subdir=frame_subdir, n_frames=n_frames, fps=fps, end_buffer=0)
+            self._build_gif(filename=filename,
+                            frame_subdir=frame_subdir,
+                            n_frames=n_frames,
+                            fps=fps,
+                            end_buffer=0)
         else:
-            self._build_vid(filename=filename, extension=extension, frame_subdir=frame_subdir, n_frames=n_frames,
+            self._build_vid(filename=filename,
+                            extension=extension,
+                            frame_subdir=frame_subdir,
+                            n_frames=n_frames,
                             fps=fps)
 
     def _single_spin_frame(self, i, c):
         self.c = c
-        self.color_chart = self._determine_color_chart()
         self.save(filename='frame', subdir='frames', frame_iter=i)
-
-    @staticmethod
-    def _build_gif(filename, frame_subdir, n_frames, fps, end_buffer):
-        """Compiles gif from images located in the frame subdirectory"""
-        print('Compiling gif...')
-        Fractal._make_dir('gifs')
-        with iio.get_writer(f'gifs/{filename}.gif', mode='I', fps=fps) as writer:
-            for frame in [f'images/{frame_subdir}/frame{i}.png' for i in range(n_frames)]:
-                image = iio.v3.imread(frame)
-                writer.append_data(image)
-            for _ in range(end_buffer):
-                writer.append_data(image)
-        print(f'Completed, gif saved at \'gifs/{filename}.gif\'')
-
-    @staticmethod
-    def _build_vid(filename, extension, frame_subdir, n_frames, fps):
-        """Compiles video from images located in the frame subdirectory"""
-        Fractal._make_dir('videos')
-        filename = filename.replace('(', '\(').replace(')', '\)')
-        list_of_commands = [
-            f'-framerate {fps} -i',
-            f'./images/{frame_subdir}/frame%d.png',
-            f'-frames:v {n_frames}',
-            f'-c:v libx265',
-            f'-vtag hvc1',
-            f'-filter:v "scale=in_color_matrix=auto:in_range=auto:out_color_matrix=bt709:out_range=tv"',
-            f'-pix_fmt:v "yuv420p"',
-            f'-colorspace:v "bt709"',
-            f'-color_primaries:v "bt709"',
-            f'-color_trc:v "bt709"',
-            f'-color_range:v "tv"',
-            f'-c:a copy',
-            f'-r {fps}',
-            f'./videos/{filename}.{extension}'
-        ]
-        command = "ffmpeg " + " ".join(list_of_commands)
-        os.system(command)
