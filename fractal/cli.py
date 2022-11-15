@@ -1,7 +1,11 @@
+"""This module provides the FRACTAL CLI."""
+
 import click
 import os
-import src.fractal as frac
+from fractal import fractal as frac
 from functools import wraps
+
+# from fractal import __app_name__, __version__
 
 
 def needs_options(f):
@@ -49,12 +53,13 @@ def needs_options(f):
 
 
 @click.group()
+# @click.version_option(__version__)
 @click.pass_context
-def main(ctx):
+def cli(ctx):
     pass
 
 
-@main.group()
+@cli.group()
 @click.pass_context
 @click.option('--ranges',
               default=((-2, 1), (-1.5, 1.5)),
@@ -76,7 +81,7 @@ def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
                               )
 
 
-@main.group()
+@cli.group()
 @click.pass_context
 @click.option('--ranges',
               default=((-1.5, 1.5), (-1.5, 1.5)),

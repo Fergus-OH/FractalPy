@@ -1,3 +1,5 @@
+"""This module provides the FRACTAL model-controller."""
+
 import matplotlib.pyplot as plt
 import matplotlib.cm as cmx
 import numpy as np
@@ -10,7 +12,7 @@ from abc import ABC, abstractmethod
 
 
 class FractalBase(ABC):
-    """A class to represent the Mandelbrot set or Julia set fractals."""
+    """A class to represent the Mandelbrot set or Julia set fractal."""
 
     def __init__(self,
                  x_ran,
