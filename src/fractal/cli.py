@@ -1,11 +1,11 @@
-"""This module provides the FRACTAL CLI."""
-
-import click
+"""This module provides the Command Line Interface for this package."""
 import os
-from fractal import fractal as frac
 from functools import wraps
 
-# from fractal import __app_name__, __version__
+import click
+
+from . import __version__
+from . import fractals as frac
 
 
 def needs_options(f):
@@ -53,7 +53,7 @@ def needs_options(f):
 
 
 @click.group()
-# @click.version_option(__version__)
+@click.version_option(__version__)
 @click.pass_context
 def cli(ctx):
     pass
@@ -113,14 +113,8 @@ def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
 # These are essentially a base commands
 @click.command(name='plot')
 @click.pass_context
-@click.option('--dpi',
-              default=None,
-              show_default=True,
-              type=int,
-              help="DPI of image"
-              )
 @click.option('--fig_size',
-              default=None,
+              default=4,
               show_default=True,
               type=float,
               help="size of figure"
@@ -131,9 +125,9 @@ def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
               show_default=True,
               help="Show axis"
               )
-def plot_fractal(ctx, axis, dpi, fig_size):
+def plot_fractal(ctx, axis, fig_size):
     """docstring"""
-    ctx.obj.plot(axis=axis, dpi=dpi, fig_size=fig_size)
+    ctx.obj.plot(axis=axis, fig_size=fig_size)
 
 
 @click.command('save')
@@ -150,13 +144,18 @@ def plot_fractal(ctx, axis, dpi, fig_size):
               )
 def save_fractal(ctx, filename, extension):
     """docstring"""
-    ctx.obj.save(filename, extension)
+    ctx.obj.save(filename=filename, extension=extension)
 
 
 @click.command('zoom')
 @click.pass_context
+@click.option('--magnitude',
+              '-m',
+              default=6e+4,
+              type=float
+              )
 @click.option('--target',
-              default=(6e+4, -1.186592e+0, -1.901211e-1),
+              default=(-1.186592e+0, -1.901211e-1),
               type=tuple
               )
 @click.option('--filename',
@@ -177,9 +176,10 @@ def save_fractal(ctx, filename, extension):
 @click.option('--n_jobs',
               default=os.cpu_count()
               )
-def zoom_fractal(ctx, target, filename, extension, frame_subdir, n_frames, fps, n_jobs):
+def zoom_fractal(ctx, magnitude, target, filename, extension, frame_subdir, n_frames, fps, n_jobs):
     """docstring"""
-    ctx.obj.zoom(target=target,
+    ctx.obj.zoom(m=magnitude,
+                 target=target,
                  filename=filename,
                  extension=extension,
                  frame_subdir=frame_subdir,

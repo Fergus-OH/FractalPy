@@ -1,18 +1,22 @@
-"""This module provides the FRACTAL model-controller."""
+"""This module provides the usage classes for this package."""
 
-import matplotlib.pyplot as plt
-import matplotlib.cm as cmx
-import numpy as np
-import imageio as iio
 import os
-from mpire import WorkerPool
-import numba as nb
-from math import ceil
 from abc import ABC, abstractmethod
+from math import ceil
+from pathlib import Path
+
+import imageio as iio
+import matplotlib.cm as cmx
+import matplotlib.pyplot as plt
+import numba as nb
+import numpy as np
+from mpire import WorkerPool
+
+path = Path().resolve()
 
 
 class FractalBase(ABC):
-    """A class to represent the Mandelbrot set or Julia set fractal."""
+    """An abstract class to represent a base class for fractals."""
 
     def __init__(self,
                  x_ran,
@@ -37,10 +41,9 @@ class FractalBase(ABC):
             pallet_len (int, optional): Length of periodicity for color pallet. Defaults to 250.
             color_map_shift (int, optional): Length to shift color pallet. Defaults to 0.
         """
-        # asdfa
 
-        self.x_ran = x_ran
-        self.y_ran = y_ran
+        self.x_min, self.x_max = x_ran
+        self.y_min, self.y_max = y_ran
 
         self.n_pts = n_pts
         self.threshold = threshold
@@ -51,18 +54,18 @@ class FractalBase(ABC):
         self.pallet_len = pallet_len
         self.color_map_shift = color_map_shift
 
-        print('Object initialised.')
+    @property
+    def ratio(self):
+        x_len = abs(self.x_max - self.x_min)
+        y_len = abs(self.y_max - self.y_min)
+        ratio = x_len / y_len
+        return ratio
 
     @property
     def x_y_ranges(self):
-        x_min, x_max = self.x_ran
-        y_min, y_max = self.y_ran
-
-        x_len = abs(x_max - x_min)
-        y_len = abs(y_max - y_min)
-
-        x_arr = np.linspace(x_min, x_max, ceil(self.n_pts * x_len / y_len))
-        y_arr = np.linspace(y_max, y_min, self.n_pts)
+        """A property for the ranges of the x-points and the y-points"""
+        x_arr = np.linspace(self.x_min, self.x_max, ceil(self.n_pts * self.ratio))
+        y_arr = np.linspace(self.y_max, self.y_min, self.n_pts)
         return x_arr, y_arr
 
     @property
@@ -71,8 +74,8 @@ class FractalBase(ABC):
 
     @color_map.setter
     def color_map(self, c_map):
+        """Sets the color map with a mask for the values in the fractal set"""
         new_c_map = cmx.get_cmap(c_map).copy()
-        # Creating a new color map that maps masked values to black
         new_c_map.set_bad(color=self.set_color)
         self._color_map = new_c_map
 
@@ -82,20 +85,20 @@ class FractalBase(ABC):
         pass
 
     @abstractmethod
-    def plot(self, axis='off', fig_size=None, dpi=150):
-        """Plots the set calculated according to the objects parameters.
+    def plot(self, fig_size=4, axis='off', n_ticks=5):
+        """Plots the calculated set.
 
         Args:
-            axis (str, optional): Axis parameters for plot. Defaults to 'off'.
-            fig_size (tuple, optional): Size of figure in inches for plot. Defaults to None.
-            dpi (int, optional): DPI of plot. Defaults to 100.
+            fig_size (int, optional): Size of figure in inches of x-axis for plot. Defaults to 4.
+            axis (tuple[float, float, float, float] or bool or string, optional): Axis parameters for plot. Defaults to 'off'.
+            n_ticks (int, optional): Number of ticks for axes. Defaults to 5.
         """
-        # TODO: Consider getting rid of dpi from the plot method. It may be a redundunt metric or broken.
-        if fig_size is not None:
-            assert fig_size > 0, 'fig_size must be a positive float or integer'
-            fig_size = (fig_size, fig_size)
-        fig, ax = plt.subplots(figsize=fig_size, dpi=dpi)
-        ax.imshow(self._color_chart % self.pallet_len,
+        assert type(n_ticks) == int and n_ticks > 0, 'n_ticks must be a positive integer'
+        assert fig_size > 0, 'fig_size must be a positive float or integer'
+
+        fig_size = (fig_size * self.ratio, fig_size)
+        fig, ax = plt.subplots(figsize=fig_size)
+        ax.imshow(self._color_chart % self.pallet_len,  # Modulo length of pallet for periodicity
                   origin='upper',
                   cmap=self.color_map,
                   vmin=0,
@@ -103,40 +106,46 @@ class FractalBase(ABC):
                   aspect='equal')
         ax.axis(axis)
 
+        # Set axes ticks. No if statement here due to variance in type(axis)
         x_start, x_end = ax.get_xlim()
-        ax.set_xticks(np.linspace(x_start, x_end, 5))
-        ax.set_xticklabels(np.linspace(self.x_ran[0], self.x_ran[1], 5), rotation=60)
+        ax.set_xticks(np.linspace(x_start, x_end, n_ticks))
+        ax.set_xticklabels(np.linspace(self.x_min, self.x_max, n_ticks), rotation=60)
 
         y_start, y_end = ax.get_ylim()
-        ax.set_yticks(np.linspace(y_start, y_end, 5))
-        ax.set_yticklabels(np.linspace(self.y_ran[0], self.y_ran[1], 5))
+        ax.set_yticks(np.linspace(y_start, y_end, n_ticks))
+        ax.set_yticklabels(np.linspace(self.y_min, self.y_max, n_ticks))
         plt.show()
 
     @abstractmethod
-    def save(self, filename, subdir='', frame_iter='', extension='png'):
-        """Saves the image of the set in the './images' directory.
+    def save(self, filename, extension='png'):
+        """Saves an image of the calculated set in the './images' directory.
 
         Args:
-            subdir (str, optional): A subdirectory of './images' to save the image within. Defaults to ''.
+            # subdir (str, optional): A subdirectory of './images' to save the image within. Defaults to ''.
             filename (_type_): The filename of the saved image. Defaults to None.
-            frame_iter (str, optional): The frame iteration number. Defaults to ''.
+            # frame_iter (str, optional): The frame iteration number. Defaults to ''.
             extension (str, optional): The extension to save the image as. Defaults to 'png'.
         """
-        self._make_dir(os.path.join('images', subdir))
+        self._make_dir(os.path.join('fractals', 'images'))
 
-        plt.imsave(fname=f'images/{subdir}/{filename}{frame_iter}.{extension}',
+        fname = os.path.join('fractals', 'images', f'{filename}.{extension}')
+        plt.imsave(fname=fname,
                    arr=self._color_chart % self.pallet_len,
                    origin='upper',
                    cmap=self.color_map,
                    vmin=0,
                    vmax=self.pallet_len,
                    format=extension)
-        # print(f'Image saved at {subdir}')
+
+        save_dir = os.path.join(path, fname)
+
+        print(f'Image saved at {save_dir}')
 
         # TODO: consider implementing a _frame_save method and then print where the file is saved for the save method
 
-    def save_frame(self, filename, frame_dir, frame_iter, extension='png'):
-        plt.imsave(fname=f'images/{frame_dir}/{filename}{frame_iter}.{extension}',
+    def _save_frame(self, frame_iter, extension='png'):
+        fname = os.path.join('fractals', 'frames', f'frame{frame_iter}.{extension}')
+        plt.imsave(fname=fname,
                    arr=self._color_chart % self.pallet_len,
                    origin='upper',
                    cmap=self.color_map,
@@ -154,6 +163,7 @@ class FractalBase(ABC):
 
     @abstractmethod
     def zoom(self,
+             m,
              target,
              filename=None,
              extension='gif',
@@ -163,14 +173,16 @@ class FractalBase(ABC):
              n_jobs=os.cpu_count()
              ):
         """Compiles a video after generating a sequence of images, beginning with the object's current co-ordinate
-        frame and finishing at the target location.
+        frame and finishing at the target location frame.
 
         Args:
             filename (str, optional): Name of output file. Defaults to None.
             extension (str, optional): Extension of the output file format. Defaults to 'gif'.
             frame_subdir (str, optional): Directory to save image frames. Defaults to 'frames'.
-            target (tuple, optional): Target location for the end of zoom. The first tuple entry is the zoom magnitude
-                of the target location with x, y coordinates. Defaults to (6e+4, -1.186592e+0, -1.901211e-1).
+            m (float, optional): the zoom magnitude.
+            target (tuple[float, float], optional): Target location for the end of zoom.
+                The first tuple entry is  location with x, y coordinates. Defaults to (6e+4, -1.186592e+0, -1.901211e-1).
+                # TODO fix the defaults here. it depends on which class
             n_frames (int, optional): Number of total frames compiled. n_frames-2 frames are compiled intermediately
                 between the initial frame and target frame. Defaults to 120.
             fps (int, optional): Number of frames per second for output video. This determines the smoothness between
@@ -178,18 +190,19 @@ class FractalBase(ABC):
             n_jobs (int, optional): Number of workers for parallel processing. Defaults to os.cpu_count().
         """
 
-        # Unpacking zoom scale and target co-ordinates from target parameters
-        x_target, y_target = self.get_target_ranges(target)
-        m = target[0]
+        self._make_dir(os.path.join('fractals', 'frames'))
 
-        # Creating a geometric sequence for frames to correspond to smooth zooming
+        # Unpack zoom-scale and get target ranges from target parameters
+        x_target_min, x_target_max, y_target_min, y_target_max = self.get_target_ranges(m, target)
+
+        # Create a geometric sequence of frames such that corresponding zoom is smooth
         geom = np.flip(1 - (np.geomspace(1, m, n_frames) - 1) / (m - 1))
         x_ranges = [(x0, x1) for (x0, x1) in
-                    zip(self.x_ran[0] + geom * (x_target[0] - self.x_ran[0]),
-                        self.x_ran[1] + geom * (x_target[1] - self.x_ran[1]))]
+                    zip(self.x_min + geom * (x_target_min - self.x_min),
+                        self.x_max + geom * (x_target_max - self.x_max))]
         y_ranges = [(y0, y1) for (y0, y1) in
-                    zip(self.y_ran[0] + geom * (y_target[0] - self.y_ran[0]),
-                        self.y_ran[1] + geom * (y_target[1] - self.y_ran[1]))]
+                    zip(self.y_min + geom * (y_target_min - self.y_min),
+                        self.y_max + geom * (y_target_max - self.y_max))]
 
         # MULTIPROCESSING
         """
@@ -201,7 +214,10 @@ class FractalBase(ABC):
         p_umap(self._single_zoom_frame, inputs)
         """
 
+        # Pack up frame data to be carried out by workers
         inputs = zip(range(n_frames), x_ranges, y_ranges)
+
+        # Assign workers to generate image frames in a multiprocessing configuration
         with WorkerPool(n_jobs=n_jobs) as pool:
             pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
 
@@ -209,55 +225,64 @@ class FractalBase(ABC):
             filename = str(f'zoom_{target}_{self.threshold}thresh_{self.n_pts}pts_{n_frames}frames_{fps}fps')
         filename = str(filename).replace('.', ',').replace(' ', '')
 
+        # Compile video of generated image frames
         if extension == 'gif':
             self._build_gif(filename=filename,
-                            frame_subdir=frame_subdir,
                             n_frames=n_frames,
                             fps=fps,
-                            end_buffer=2 * fps)
+                            end_buffer=2 * fps
+                            )
         else:
             self._build_vid(filename=filename,
                             extension=extension,
-                            frame_subdir=frame_subdir,
                             n_frames=n_frames,
-                            fps=fps)
+                            fps=fps
+                            )
 
     def _single_zoom_frame(self, i, x_cur, y_cur):
-        self.x_ran = x_cur
-        self.y_ran = y_cur
-        self.save(filename='frame', subdir='frames', frame_iter=i)
+        self.x_min, self.x_max = x_cur
+        self.y_min, self.y_max = y_cur
+        self._save_frame(frame_iter=i)
 
-    def get_target_ranges(self, target):
-        (m, x, y) = target
+    def get_target_ranges(self, m, target):
+        (x, y) = target
 
-        x_target_len = abs(self.x_ran[1] - self.x_ran[0]) / m
+        x_target_len = abs(self.x_max - self.x_min) / m
         x_target = (x - x_target_len / 2, x + x_target_len / 2)
 
-        y_target_len = abs(self.y_ran[1] - self.y_ran[0]) / m
+        y_target_len = abs(self.y_max - self.y_min) / m
         y_target = (y - y_target_len / 2, y + y_target_len / 2)
 
-        return x_target, y_target
+        return x_target[0], x_target[1], y_target[0], y_target[1]
 
     @classmethod
-    def _build_gif(cls, filename, frame_subdir, n_frames, fps, end_buffer):
+    def _build_gif(cls, filename, n_frames, fps, end_buffer):
         """Compiles gif from images located in the frame subdirectory"""
         print('Compiling gif...')
-        cls._make_dir('gifs')
-        with iio.get_writer(f'gifs/{filename}.gif', mode='I', fps=fps) as writer:
-            for frame in [f'images/{frame_subdir}/frame{i}.png' for i in range(n_frames)]:
+        cls._make_dir(os.path.join('fractals', 'gifs'))
+        save_dir = os.path.join('fractals', 'gifs', f'{filename}.gif')
+
+        with iio.get_writer(save_dir, mode='I', fps=fps) as writer:
+            for frame in [os.path.join('fractals', 'frames', f'frame{i}.png') for i in range(n_frames)]:
                 image = iio.v3.imread(frame)
                 writer.append_data(image)
             for _ in range(end_buffer):
                 writer.append_data(image)
-        print(f'Completed, gif saved at \'gifs/{filename}.gif\'')
+
+        print(f'Completed, gif saved at {os.path.join(path, save_dir)}')
 
     @classmethod
-    def _build_vid(cls, filename, extension, frame_subdir, n_frames, fps):
+    def _build_vid(cls, filename, extension, n_frames, fps):
         """Compiles video from images located in the frame subdirectory"""
-        cls._make_dir('videos')
+        print(f'Compiling {extension} video...')
+        cls._make_dir(os.path.join('fractals', 'videos'))
+
         filename = filename.replace('(', '\(').replace(')', '\)')
+
+        frame_dir = os.path.join('fractals', 'frames', 'frame%d.png')
+        save_dir = os.path.join('fractals', 'videos', f'{filename}.{extension}')
         list_of_commands = [f'-framerate {fps} -i',
-                            f'./images/{frame_subdir}/frame%d.png',
+                            f'{frame_dir}',
                             f'-frames:v {n_frames}',
                             f'-c:v libx265',
                             f'-vtag hvc1',
@@ -269,11 +294,12 @@ class FractalBase(ABC):
                             f'-color_range:v "tv"',
                             f'-c:a copy',
                             f'-r {fps}',
-                            f'./videos/{filename}.{extension}'
+                            f'{save_dir}'
                             ]
         command = "ffmpeg " + " ".join(list_of_commands)
         os.system(command)
-        print(f'Completed, {extension} saved at \'videos/{filename}.{extension}\'')
+
+        print(f'Completed, video saved at {os.path.join(path, save_dir)}')
 
 
 class Mandelbrot(FractalBase):
@@ -313,8 +339,8 @@ class Mandelbrot(FractalBase):
             print(self.__class__.__name__)
         super().save(filename, **kwargs)
 
-    def zoom(self, target=(6e+4, -1.186592e+0, -1.901211e-1), **kwargs):
-        super().zoom(target, **kwargs)
+    def zoom(self, m=6e+4, target=(-1.186592e+0, -1.901211e-1), **kwargs):
+        super().zoom(m, target, **kwargs)
 
 
 class Julia(FractalBase):
@@ -353,13 +379,12 @@ class Julia(FractalBase):
             filename = str(filename).replace('.', ',').replace(' ', '')  # TODO: is the second replace necessary anymore
         super().save(filename=filename, **kwargs)
 
-    def zoom(self, target, **kwargs):
-        super().zoom(target, **kwargs)
+    def zoom(self, m, target, **kwargs):
+        super().zoom(m, target, **kwargs)
 
     def spin(self,
              filename=None,
              extension='gif',
-             frame_subdir='frames',
              n_frames=60,
              fps=60,
              n_jobs=os.cpu_count()
@@ -370,7 +395,6 @@ class Julia(FractalBase):
         Args:
             filename (_type_, optional): _description_. Defaults to None.
             extension (str, optional): _description_. Defaults to 'gif'.
-            frame_subdir (str, optional): _description_. Defaults to 'frames'.
             n_frames (int, optional): _description_. Defaults to 60.
             fps (int, optional): _description_. Defaults to 60.
             n_jobs (_type_, optional): _description_. Defaults to os.cpu_count().
@@ -391,7 +415,6 @@ class Julia(FractalBase):
 
         if extension == 'gif':
             self._build_gif(filename=filename,
-                            frame_subdir=frame_subdir,
                             n_frames=n_frames,
                             fps=fps,
                             end_buffer=0
@@ -399,7 +422,6 @@ class Julia(FractalBase):
         else:
             self._build_vid(filename=filename,
                             extension=extension,
-                            frame_subdir=frame_subdir,
                             n_frames=n_frames,
                             fps=fps
                             )
