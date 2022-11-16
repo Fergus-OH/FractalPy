@@ -7,7 +7,7 @@ images/
 videos/
 gifs/
 testcli.py
-src/fractal/testtt.py
+src/fractalPy/testtt.py
 old_main.py
 fractals/
-src/fractal.egg-info/
+src/fractalPy.egg-info/

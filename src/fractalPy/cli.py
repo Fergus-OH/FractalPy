@@ -69,7 +69,7 @@ def cli(ctx):
               )
 @needs_options
 def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
-    """docstring"""
+    """Commands relating to the Mandelbrot set"""
     ctx.obj = frac.Mandelbrot(x_ran=ranges[0],
                               y_ran=ranges[1],
                               n_pts=npts,
@@ -97,7 +97,7 @@ def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
               )
 @needs_options
 def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
-    """Commands for HTTPS"""
+    """Commands relating to the Julia set"""
     ctx.obj = frac.Julia(c=c,
                          x_ran=ranges[0],
                          y_ran=ranges[1],
@@ -126,7 +126,7 @@ def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
               help="Show axis"
               )
 def plot_fractal(ctx, axis, fig_size):
-    """docstring"""
+    """plot the set"""
     ctx.obj.plot(axis=axis, fig_size=fig_size)
 
 
@@ -143,7 +143,7 @@ def plot_fractal(ctx, axis, fig_size):
               help="extension of image"
               )
 def save_fractal(ctx, filename, extension):
-    """docstring"""
+    """save an image of the set"""
     ctx.obj.save(filename=filename, extension=extension)
 
 
@@ -177,7 +177,7 @@ def save_fractal(ctx, filename, extension):
               default=os.cpu_count()
               )
 def zoom_fractal(ctx, magnitude, target, filename, extension, frame_subdir, n_frames, fps, n_jobs):
-    """docstring"""
+    """create a video of zooming into the set"""
     ctx.obj.zoom(m=magnitude,
                  target=target,
                  filename=filename,
@@ -219,5 +219,5 @@ julia.add_command(zoom_fractal)
               default=os.cpu_count()
               )
 def spin_julia(ctx, filename, extension, frame_subdir, n_frames, fps, n_jobs):
-    """docstring"""
+    """create a video of rotating the parameter c"""
     ctx.obj.spin(filename, extension, frame_subdir, n_frames, fps, n_jobs)

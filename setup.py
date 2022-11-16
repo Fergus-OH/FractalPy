@@ -10,7 +10,7 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="fractal",
+    name="fractalPy",
     version="1.0.0",
     description="A package to generate videos and images of fractals",
     long_description=long_description,
@@ -43,6 +43,6 @@ setup(
         'numpy'
     ],
     entry_points={
-        'console_scripts': ['fractal = fractal.__main__'],
+        'console_scripts': ['fractalPy = fractalPy.__main__'],
     },
 )

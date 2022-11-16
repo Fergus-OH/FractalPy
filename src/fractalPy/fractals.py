@@ -75,7 +75,7 @@ class FractalBase(ABC):
 
     @color_map.setter
     def color_map(self, c_map):
-        """Sets the color map with a mask for the values in the fractal set"""
+        """Sets the color map with a mask for the values in the fractalPy set"""
         new_c_map = cmx.get_cmap(c_map).copy()
         new_c_map.set_bad(color=self.set_color)
         self._color_map = new_c_map
@@ -337,8 +337,6 @@ class Mandelbrot(FractalBase):
     def save(self, filename='', **kwargs):
         if not filename:
             filename = str(f'{self.__class__.__name__}_{self.n_pts}pts_{self.threshold}threshold')
-            print(filename)
-            print(self.__class__.__name__)
         super().save(filename, **kwargs)
 
     def zoom(self, m=6e+4, target=(-1.186592e+0, -1.901211e-1), **kwargs):

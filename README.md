@@ -1,4 +1,4 @@
-# mandelbrot-julia-sets
+# fractalPy
 <p align="center">
   <img src= "assets/Mandelbrot_4320pts_1000threshold.png" width="1000">
 </p>
@@ -17,16 +17,57 @@ This project contains an implementation to generate images and videos relating t
 </p>
 
 ## Getting Started
-First clone this project by running the following command in a terminal:
+Before installing the `fractalPy` package, it is recommended to create and activate a virtual environment with `python 3.10`.
+This can be done with conda by running the following in a terminal:
+```
+conda create --name fractal python==3.10
+conda activate fractal
+```
+Then clone this project by running the following command in a :
 ```
 git clone https://github.com/Fergus-OH/mandelbrot-julia-sets.git
-```
-The dependencies can be found in the [requirements.txt](./requirements.txt) file.
-It is recommended to create a virtual environment using conda or venv and install the dependencies by running the following:
-```
-pip install -r requirements.txt
+cd mandelbrot-julia-sets
 ```
 
+[//]: # (The dependencies can be found in the [requirements.txt]&#40;./requirements.txt&#41; file.)
+
+[//]: # (It is recommended to create a virtual environment using conda or venv and install the dependencies by running the following:)
+
+[//]: # (```)
+
+[//]: # (pip install -r requirements.txt)
+
+[//]: # (```)
+
+
+Now the package and it's dependencies can be installed using pip with the following command
+```
+pip install -e .
+```
+The package should now be installed in the virtual environment `fractal`.
+The package can be imported to a python script and run with
+```python
+import fractalPy as frac
+frac.Mandelbrot.plot()
+```
+
+The package also offers a command line interface that can be immediately accessed in the terminal with
+```
+fractalPy --help
+```
+
+For example, we can create a gif of zooming into the mandelbrot set with the following command:
+```
+fractalPy mandelbrot zoom
+```
+
+If FFmpeg is installed and accessible via the $PATH environment variable, then `fractalPy` can also generate videos.
+For example
+```
+fractalPy mandelbrot zoom --extension mp4
+```
+
+fractalPy makes use of multiprocessing to generate multiple frames simultaneously and also performs the computationally expensive calculations in parallel with `jit`, making it an extremely fast.
 <!-- ```
 Fractal().
 ```
