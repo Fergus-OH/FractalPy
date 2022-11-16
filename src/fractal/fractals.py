@@ -56,6 +56,7 @@ class FractalBase(ABC):
 
     @property
     def ratio(self):
+        """A property for the aspect ratio"""
         x_len = abs(self.x_max - self.x_min)
         y_len = abs(self.y_max - self.y_min)
         ratio = x_len / y_len
@@ -106,7 +107,7 @@ class FractalBase(ABC):
                   aspect='equal')
         ax.axis(axis)
 
-        # Set axes ticks. No if statement here due to variance in type(axis)
+        # Set axes ticks. No if statement here due to possible variance in type(axis)
         x_start, x_end = ax.get_xlim()
         ax.set_xticks(np.linspace(x_start, x_end, n_ticks))
         ax.set_xticklabels(np.linspace(self.x_min, self.x_max, n_ticks), rotation=60)
@@ -118,16 +119,14 @@ class FractalBase(ABC):
 
     @abstractmethod
     def save(self, filename, extension='png'):
-        """Saves an image of the calculated set in the './images' directory.
+        """Saves an image of the calculated set in the 'images' directory.
 
         Args:
-            # subdir (str, optional): A subdirectory of './images' to save the image within. Defaults to ''.
             filename (_type_): The filename of the saved image. Defaults to None.
             # frame_iter (str, optional): The frame iteration number. Defaults to ''.
             extension (str, optional): The extension to save the image as. Defaults to 'png'.
         """
         self._make_dir(os.path.join('fractals', 'images'))
-
         fname = os.path.join('fractals', 'images', f'{filename}.{extension}')
         plt.imsave(fname=fname,
                    arr=self._color_chart % self.pallet_len,
@@ -136,12 +135,7 @@ class FractalBase(ABC):
                    vmin=0,
                    vmax=self.pallet_len,
                    format=extension)
-
-        save_dir = os.path.join(path, fname)
-
-        print(f'Image saved at {save_dir}')
-
-        # TODO: consider implementing a _frame_save method and then print where the file is saved for the save method
+        print(f'Image saved at {os.path.join(path, fname)}')
 
     def _save_frame(self, frame_iter, extension='png'):
         fname = os.path.join('fractals', 'frames', f'frame{frame_iter}.{extension}')
@@ -189,14 +183,15 @@ class FractalBase(ABC):
                 frames and affects the length of the output video. Defaults to 60.
             n_jobs (int, optional): Number of workers for parallel processing. Defaults to os.cpu_count().
         """
-
         self._make_dir(os.path.join('fractals', 'frames'))
 
-        # Unpack zoom-scale and get target ranges from target parameters
+        # Get target ranges from target parameters
         x_target_min, x_target_max, y_target_min, y_target_max = self.get_target_ranges(m, target)
 
-        # Create a geometric sequence of frames such that corresponding zoom is smooth
+        # TODO think about how to describe this. This is the most complex and important line in the package
         geom = np.flip(1 - (np.geomspace(1, m, n_frames) - 1) / (m - 1))
+
+        # Create a geometric sequence of frames such that corresponding zoom is smooth
         x_ranges = [(x0, x1) for (x0, x1) in
                     zip(self.x_min + geom * (x_target_min - self.x_min),
                         self.x_max + geom * (x_target_max - self.x_max))]
@@ -221,6 +216,7 @@ class FractalBase(ABC):
         with WorkerPool(n_jobs=n_jobs) as pool:
             pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
 
+        # Assign default filename
         if not filename:
             filename = str(f'zoom_{target}_{self.threshold}thresh_{self.n_pts}pts_{n_frames}frames_{fps}fps')
         filename = str(filename).replace('.', ',').replace(' ', '')
@@ -240,11 +236,13 @@ class FractalBase(ABC):
                             )
 
     def _single_zoom_frame(self, i, x_cur, y_cur):
+        """Generates image frame of current x range and y range"""
         self.x_min, self.x_max = x_cur
         self.y_min, self.y_max = y_cur
         self._save_frame(frame_iter=i)
 
     def get_target_ranges(self, m, target):
+        """Gets the x range and y range for the target point at corresponding zoom magnitude"""
         (x, y) = target
 
         x_target_len = abs(self.x_max - self.x_min) / m
@@ -259,28 +257,31 @@ class FractalBase(ABC):
     def _build_gif(cls, filename, n_frames, fps, end_buffer):
         """Compiles gif from images located in the frame subdirectory"""
         print('Compiling gif...')
-        cls._make_dir(os.path.join('fractals', 'gifs'))
-        save_dir = os.path.join('fractals', 'gifs', f'{filename}.gif')
 
-        with iio.get_writer(save_dir, mode='I', fps=fps) as writer:
+        cls._make_dir(os.path.join('fractals', 'gifs'))
+        save_rel_path = os.path.join('fractals', 'gifs', f'{filename}.gif')
+
+        with iio.get_writer(save_rel_path, mode='I', fps=fps) as writer:
             for frame in [os.path.join('fractals', 'frames', f'frame{i}.png') for i in range(n_frames)]:
                 image = iio.v3.imread(frame)
                 writer.append_data(image)
             for _ in range(end_buffer):
                 writer.append_data(image)
 
-        print(f'Completed, gif saved at {os.path.join(path, save_dir)}')
+        print(f'Completed, gif saved at {os.path.join(path, save_rel_path)}')
 
     @classmethod
     def _build_vid(cls, filename, extension, n_frames, fps):
         """Compiles video from images located in the frame subdirectory"""
         print(f'Compiling {extension} video...')
-        cls._make_dir(os.path.join('fractals', 'videos'))
 
+        # Makes filename compatible with ffmpeg
         filename = filename.replace('(', '\(').replace(')', '\)')
 
+        cls._make_dir(os.path.join('fractals', 'videos'))
         frame_dir = os.path.join('fractals', 'frames', 'frame%d.png')
-        save_dir = os.path.join('fractals', 'videos', f'{filename}.{extension}')
+        save_rel_path = os.path.join('fractals', 'videos', f'{filename}.{extension}')
+
         list_of_commands = [f'-framerate {fps} -i',
                             f'{frame_dir}',
                             f'-frames:v {n_frames}',
@@ -294,15 +295,16 @@ class FractalBase(ABC):
                             f'-color_range:v "tv"',
                             f'-c:a copy',
                             f'-r {fps}',
-                            f'{save_dir}'
+                            f'{save_rel_path}'
                             ]
         command = "ffmpeg " + " ".join(list_of_commands)
         os.system(command)
 
-        print(f'Completed, video saved at {os.path.join(path, save_dir)}')
+        print(f'Completed, video saved at {os.path.join(path, save_rel_path)}')
 
 
 class Mandelbrot(FractalBase):
+    """A class to represent the Mandelbrot set."""
     def __init__(self, x_ran=(-2, 1), y_ran=(-1.5, 1.5), **kwargs):
         super().__init__(x_ran, y_ran, **kwargs)
 
@@ -344,6 +346,7 @@ class Mandelbrot(FractalBase):
 
 
 class Julia(FractalBase):
+    """A class to represent the Julia set."""
     def __init__(self, c=-0.79 + 0.15j, x_ran=(-1.5, 1.5), y_ran=(-1.5, 1.5), **kwargs):
         super().__init__(x_ran, y_ran, **kwargs)
         self.c = c

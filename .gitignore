@@ -9,3 +9,5 @@ gifs/
 testcli.py
 src/fractal/testtt.py
 old_main.py
+fractals/
+src/fractal.egg-info/
