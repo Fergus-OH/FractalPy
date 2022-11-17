@@ -48,7 +48,8 @@ The package should now be installed in the virtual environment `fractal`.
 The package can be imported to a python script and run with
 ```python
 import fractalPy as frac
-frac.Mandelbrot.plot()
+frac.Mandelbrot().plot()
+frac.Julia().plot()
 ```
 
 The package also offers a command line interface that can be immediately accessed in the terminal with
@@ -60,6 +61,7 @@ For example, we can create a gif of zooming into the mandelbrot set with the fol
 ```
 fractalPy mandelbrot zoom
 ```
+The `--help` flag can be used on any of the commands to display options and further details.
 
 If FFmpeg is installed and accessible via the $PATH environment variable, then `fractalPy` can also generate videos.
 For example
