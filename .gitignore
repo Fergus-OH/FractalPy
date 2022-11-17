@@ -1,7 +1,13 @@
 .DS_Store
 **/__pycache__/
 __init__.py
+test.ipynb
+old_files/
+images/
+videos/
+gifs/
+testcli.py
+src/fractalPy/testtt.py
+old_main.py
 fractals/
-ignore/
-src/fractalPy.egg-info
-
+src/fractalPy.egg-info/
