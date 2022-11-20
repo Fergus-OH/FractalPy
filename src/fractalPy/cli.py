@@ -62,16 +62,16 @@ def cli(ctx):
 @cli.group()
 @click.pass_context
 @click.option('--ranges',
-              default=((-2, 1), (-1.5, 1.5)),
+              default=(-2, 1, -1.5, 1.5),
               show_default=True,
-              type=tuple,
+              type=(float, float, float, float),
               help="range"
               )
 @needs_options
 def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
     """Commands relating to the Mandelbrot set"""
-    ctx.obj = frac.Mandelbrot(x_ran=ranges[0],
-                              y_ran=ranges[1],
+    ctx.obj = frac.Mandelbrot(x_ran=(ranges[0], ranges[1]),
+                              y_ran=(ranges[2], ranges[3]),
                               n_pts=npts,
                               threshold=threshold,
                               color_map=cmap,
@@ -84,6 +84,7 @@ def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
 @cli.group()
 @click.pass_context
 @click.option('--ranges',
+              nargs=2,
               default=((-1.5, 1.5), (-1.5, 1.5)),
               show_default=True,
               type=tuple,
@@ -125,9 +126,14 @@ def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
               show_default=True,
               help="Show axis"
               )
-def plot_fractal(ctx, axis, fig_size):
+@click.option("--nticks",
+              default=5,
+              show_default=True,
+              help="Number of ticks"
+              )
+def plot_fractal(ctx, fig_size, axis, nticks):
     """plot the set"""
-    ctx.obj.plot(axis=axis, fig_size=fig_size)
+    ctx.obj.plot(fig_size=fig_size, axis=axis, n_ticks=nticks)
 
 
 @click.command('save')
@@ -155,8 +161,9 @@ def save_fractal(ctx, filename, extension):
               type=float
               )
 @click.option('--target',
+              nargs=2,
               default=(-1.186592e+0, -1.901211e-1),
-              type=tuple
+              type=(float, float)
               )
 @click.option('--filename',
               default=None
@@ -176,17 +183,45 @@ def save_fractal(ctx, filename, extension):
 @click.option('--n_jobs',
               default=os.cpu_count()
               )
-def zoom_fractal(ctx, magnitude, target, filename, extension, frame_subdir, n_frames, fps, n_jobs):
+@click.option('--preview',
+              is_flag=True,
+              default=False,
+              show_default=True,
+              help="Preview target location"
+              )
+@click.option('--nticks',
+              default=5,
+              show_default=True,
+              help="Number of axes ticks"
+              )
+def zoom_fractal(ctx,
+                 magnitude,
+                 target,
+                 filename,
+                 extension,
+                 frame_subdir,
+                 n_frames,
+                 fps,
+                 n_jobs,
+                 preview,
+                 nticks
+                 ):
     """create a video of zooming into the set"""
-    ctx.obj.zoom(m=magnitude,
-                 target=target,
-                 filename=filename,
-                 extension=extension,
-                 frame_subdir=frame_subdir,
-                 n_frames=n_frames,
-                 fps=fps,
-                 n_jobs=n_jobs
-                 )
+    if preview:
+        ctx.obj.x_min, ctx.obj.x_max, ctx.obj.y_min, ctx.obj.y_max = ctx.obj.get_target_ranges(m=magnitude,
+                                                                                               target=target)
+
+        ctx.obj.plot(axis='on', n_ticks=nticks)
+    else:
+        ctx.obj.zoom(m=magnitude,
+                     target=target,
+                     filename=filename,
+                     extension=extension,
+                     frame_subdir=frame_subdir,
+                     n_frames=n_frames,
+                     fps=fps,
+                     n_jobs=n_jobs
+                     )
 
 
 mandelbrot.add_command(plot_fractal)

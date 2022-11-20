@@ -110,7 +110,7 @@ class FractalBase(ABC):
         # Set axes ticks. No if statement here due to possible variance in type(axis)
         x_start, x_end = ax.get_xlim()
         ax.set_xticks(np.linspace(x_start, x_end, n_ticks))
-        ax.set_xticklabels(np.linspace(self.x_min, self.x_max, n_ticks), rotation=60)
+        ax.set_xticklabels(np.linspace(self.x_min, self.x_max, n_ticks), rotation=90)
 
         y_start, y_end = ax.get_ylim()
         ax.set_yticks(np.linspace(y_start, y_end, n_ticks))
