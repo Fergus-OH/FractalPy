@@ -30,8 +30,7 @@ class FractalBase(ABC):
         """Initialises Fractal with either the Mandelbrot set or Julia set along with default attributes.
 
         Args:
-            x_ran (tuple, optional): Tuple of minimum and maximum values along x-axis. Defaults to None.
-            y_ran (tuple, optional): Tuple of minimum and maximum values along y-axis. Defaults to None.
+            limits (tuple, optional): Tuple of minimum and maximum values along x-axis and y-axis.
             n_pts (int, optional): Number of points along y-axis. Defaults to 1000.
             threshold (int, optional): Number of iterations before point determined to be in the set. Defaults to 1000.
             color_map (str, optional): Color map for plots. Defaults to 'hsv'.
@@ -228,7 +227,7 @@ class FractalBase(ABC):
                             fps=fps
                             )
 
-    def get_target_ranges(self, m: int, target: tuple[float, float]):
+    def get_target_ranges(self, m: float, target: tuple[float, float]):
         """Gets the x range and y range for the target point at corresponding zoom magnitude"""
         (x, y) = target
 
