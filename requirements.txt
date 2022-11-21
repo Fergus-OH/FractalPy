@@ -1,5 +1,0 @@
-imageio==2.22.2
-matplotlib==3.6.1
-mpire==2.6.0
-numba==0.56.3
-numpy==1.23.4

@@ -49,13 +49,14 @@ pip install -e .
 The package should now be installed in the virtual environment `fractal`.
 There are two ways of using `fractalPy`.
 The package can be imported to a python script with
+
 ```python
-import fractalPy as frac
+import fractalpy as frac
 
 # Plot the Mandelbrot set
 frac.Mandelbrot.plot()
 
-#Plot the Julia set
+# Plot the Julia set
 frac.Julia.plot()
 ```
 

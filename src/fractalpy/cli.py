@@ -1,49 +1,59 @@
 """This module provides the Command Line Interface for this package."""
 import os
 from functools import wraps
+from importlib.metadata import version
+from typing import get_type_hints, get_args
 
 import click
 
-from . import __version__
 from . import fractals as frac
+from .helper import get_default_args
+
+base_type_hints = get_type_hints(frac.FractalBase.__init__)
+mandel_type_hints = get_type_hints(frac.Mandelbrot.__init__)
+julia_type_hints = get_type_hints(frac.Julia.__init__)
+
+base_default_args = get_default_args(frac.FractalBase.__init__)
+mandel_default_args = get_default_args(frac.Mandelbrot.__init__)
+julia_default_args = get_default_args(frac.Julia.__init__)
 
 
 def needs_options(f):
     @wraps(f)
     @click.option('--npts',
-                  default=500,
+                  type=base_type_hints['n_pts'],
+                  default=base_default_args['n_pts'],
                   show_default=True,
-                  type=int,
                   help="npts value"
                   )
     @click.option('--threshold',
-                  default=500,
+                  type=base_type_hints['threshold'],
+                  default=base_default_args['threshold'],
                   show_default=True,
-                  type=int,
-                  help="npts value"
+                  help="threshold"
                   )
     @click.option('--cmap',
-                  default='hsv',
+                  type=base_type_hints['color_map'],
+                  default=base_default_args['color_map'],
                   show_default=True,
-                  type=str,
                   help="color map"
                   )
     @click.option('--setcolor',
-                  default='black',
+                  type=base_type_hints['c_set'],
+                  default=base_default_args['c_set'],
                   show_default=True,
-                  type=str,
                   help="set color of the set"
                   )
     @click.option('--pallet_len',
-                  default=250,
+                  type=base_type_hints['pallet_len'],
+                  default=base_default_args['pallet_len'],
                   show_default=True,
-                  type=int,
                   help="pallet length"
                   )
     @click.option('--shift',
-                  default=0,
+                  type=base_type_hints['color_map_shift'],
+                  default=base_default_args['color_map_shift'],
                   show_default=True,
-                  type=int,
                   help="color_map_shift"
                   )
     def wrapper(*args, **kwargs):
@@ -53,7 +63,7 @@ def needs_options(f):
 
 
 @click.group()
-@click.version_option(__version__)
+@click.version_option(version(__package__))
 @click.pass_context
 def cli(ctx):
     pass
@@ -61,17 +71,17 @@ def cli(ctx):
 
 @cli.group()
 @click.pass_context
-@click.option('--ranges',
-              default=(-2, 1, -1.5, 1.5),
+@click.option('--limits',
+              nargs=4,
+              type=get_args(mandel_type_hints['limits']),
+              default=mandel_default_args['limits'],
               show_default=True,
-              type=(float, float, float, float),
-              help="range"
+              help="limits"
               )
 @needs_options
-def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
+def mandelbrot(ctx, limits, npts, threshold, cmap, setcolor, pallet_len, shift):
     """Commands relating to the Mandelbrot set"""
-    ctx.obj = frac.Mandelbrot(x_ran=(ranges[0], ranges[1]),
-                              y_ran=(ranges[2], ranges[3]),
+    ctx.obj = frac.Mandelbrot(limits=limits,
                               n_pts=npts,
                               threshold=threshold,
                               color_map=cmap,
@@ -83,25 +93,24 @@ def mandelbrot(ctx, ranges, npts, threshold, cmap, setcolor, pallet_len, shift):
 
 @cli.group()
 @click.pass_context
-@click.option('--ranges',
-              nargs=2,
-              default=((-1.5, 1.5), (-1.5, 1.5)),
-              show_default=True,
-              type=tuple,
-              help="range"
-              )
 @click.option('-c',
-              default=-0.79 + 0.15j,
+              type=julia_type_hints['c'],
+              default=julia_default_args['c'],
               show_default=True,
-              type=complex,
               help="c value"
               )
+@click.option('--limits',
+              nargs=4,
+              type=get_args(julia_type_hints['limits']),
+              default=julia_default_args['limits'],
+              show_default=True,
+              help="limits"
+              )
 @needs_options
-def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
+def julia(ctx, c, limits, npts, threshold, cmap, setcolor, pallet_len, shift):
     """Commands relating to the Julia set"""
     ctx.obj = frac.Julia(c=c,
-                         x_ran=ranges[0],
-                         y_ran=ranges[1],
+                         limits=limits,
                          n_pts=npts,
                          threshold=threshold,
                          color_map=cmap,
@@ -111,13 +120,17 @@ def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
                          )
 
 
+plot_type_hints = get_type_hints(frac.FractalBase.plot)
+plot_default_args = get_default_args(frac.FractalBase.plot)
+
+
 # These are essentially a base commands
 @click.command(name='plot')
 @click.pass_context
 @click.option('--fig_size',
-              default=4,
+              type=plot_type_hints['fig_size'],
+              default=plot_default_args['fig_size'],
               show_default=True,
-              type=float,
               help="size of figure"
               )
 @click.option("--axis",
@@ -127,7 +140,8 @@ def julia(ctx, ranges, c, npts, threshold, cmap, setcolor, pallet_len, shift):
               help="Show axis"
               )
 @click.option("--nticks",
-              default=5,
+              type=plot_type_hints['n_ticks'],
+              default=plot_default_args['n_ticks'],
               show_default=True,
               help="Number of ticks"
               )
@@ -136,16 +150,20 @@ def plot_fractal(ctx, fig_size, axis, nticks):
     ctx.obj.plot(fig_size=fig_size, axis=axis, n_ticks=nticks)
 
 
+save_type_hints = get_type_hints(frac.FractalBase.save)
+save_default_args = get_default_args(frac.FractalBase.save)
+
+
 @click.command('save')
 @click.pass_context
 @click.option('--filename',
-              default=None,
-              type=str,
+              type=save_type_hints['filename'],
+              default=save_default_args['filename'],
               help="filename of image"
               )
 @click.option('--extension',
-              default='png',
-              type=str,
+              type=save_type_hints['extension'],
+              default=save_default_args['extension'],
               help="extension of image"
               )
 def save_fractal(ctx, filename, extension):

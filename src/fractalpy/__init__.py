@@ -2,5 +2,4 @@
 
 from .fractals import Julia, Mandelbrot
 
-__app_name__ = "fractalPy"
-__version__ = "0.1.0"
+__name__ = "fractalpy"
