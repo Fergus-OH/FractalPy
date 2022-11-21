@@ -5,6 +5,7 @@ old_files/
 images/
 videos/
 gifs/
+dist/
 testcli.py
 src/fractalpy/testtt.py
 old_main.py

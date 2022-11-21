@@ -4,13 +4,13 @@ import os
 from abc import ABC, abstractmethod
 from math import ceil
 from pathlib import Path
+from typing import Union
 
 import imageio as iio
 import matplotlib.cm as cmx
 import matplotlib.pyplot as plt
 import numpy as np
 from mpire import WorkerPool
-from typing import Union
 
 working_path = Path().resolve()
 
@@ -119,7 +119,7 @@ class FractalBase(ABC):
 
     @abstractmethod
     def save(self,
-             filename: str,
+             filename: str = '',
              extension: str = 'png'
              ):
         """Saves an image of the calculated set in the 'images' directory.
@@ -152,7 +152,7 @@ class FractalBase(ABC):
     def zoom(self,
              m: float,
              target: tuple[float, float],
-             filename: str = None,
+             filename: str = '',
              extension: str = 'gif',
              frame_subdir: str = 'frames',
              n_frames: int = 120,
@@ -209,7 +209,7 @@ class FractalBase(ABC):
         with WorkerPool(n_jobs=n_jobs) as pool:
             pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
 
-        # Assign default filename
+        # Assign default filename TODO: decide on consistency with where to determine default filename and fix the details of the filename along with adding the magnitude
         if not filename:
             filename = str(f'zoom_{target}_{self.threshold}thresh_{self.n_pts}pts_{n_frames}frames_{fps}fps')
         filename = str(filename).replace('.', ',').replace(' ', '')

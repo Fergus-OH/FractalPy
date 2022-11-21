@@ -4,8 +4,9 @@ import os
 
 import numba as nb
 import numpy as np
-from .fractal_base import FractalBase
 from mpire import WorkerPool
+
+from .fractal_base import FractalBase
 
 
 class Mandelbrot(FractalBase):
