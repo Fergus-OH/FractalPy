@@ -9,6 +9,15 @@ from fractalpy.fractals import fractals as frac
 base_type_hints = get_type_hints(frac.FractalBase.__init__)
 base_default_args = get_default_args(frac.FractalBase.__init__)
 
+plot_type_hints = get_type_hints(frac.FractalBase.plot)
+plot_default_args = get_default_args(frac.FractalBase.plot)
+
+zoom_type_hints = get_type_hints(frac.FractalBase.zoom)
+zoom_default_args = get_default_args(frac.FractalBase.zoom)
+
+save_type_hints = get_type_hints(frac.FractalBase.save)
+save_default_args = get_default_args(frac.FractalBase.save)
+
 
 def needs_options(f):
     @wraps(f)
@@ -50,15 +59,10 @@ def needs_options(f):
                   )
     def wrapper(*args, **kwargs):
         return f(*args, **kwargs)
-
     return wrapper
 
 
-plot_type_hints = get_type_hints(frac.FractalBase.plot)
-plot_default_args = get_default_args(frac.FractalBase.plot)
-
-
-# These are essentially a base commands
+# These are commands that can be used for all fractal classes
 @click.command(name='plot')
 @click.pass_context
 @click.option('--fig_size',
@@ -84,10 +88,6 @@ def plot_fractal(ctx, fig_size, axis, nticks):
     ctx.obj.plot(fig_size=fig_size, axis=axis, n_ticks=nticks)
 
 
-save_type_hints = get_type_hints(frac.FractalBase.save)
-save_default_args = get_default_args(frac.FractalBase.save)
-
-
 @click.command('save')
 @click.pass_context
 @click.option('--filename',
@@ -103,10 +103,6 @@ save_default_args = get_default_args(frac.FractalBase.save)
 def save_fractal(ctx, filename, extension):
     """save an image of the set"""
     ctx.obj.save(filename=filename, extension=extension)
-
-
-zoom_type_hints = get_type_hints(frac.FractalBase.zoom)
-zoom_default_args = get_default_args(frac.FractalBase.zoom)
 
 
 @click.command('zoom')

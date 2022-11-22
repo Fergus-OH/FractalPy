@@ -17,7 +17,7 @@ click = "^8.1.3"
 importlib-metadata = "^5.0.0"
 
 [tool.poetry.scripts]
-fractalpy = 'fractalpy.__main__:cli_main'
+fractalpy = 'fractalpy.cli.cli_main:cli_main'
 
 
 [build-system]

@@ -4,11 +4,12 @@ from importlib.metadata import version
 
 import click
 
+from .. import __version__
 from .commands import cmd_julia, cmd_mandelbrot
 
 
 @click.group()
-# @click.version_option(version(__package__))
+@click.version_option(__version__)
 @click.pass_context
 def cli_main(ctx):
     pass
