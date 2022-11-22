@@ -1,4 +1,4 @@
-# fractalPy
+# FractalPy
 <p align="center">
   <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="800">
 </p>
@@ -11,11 +11,11 @@ The filled-in Julia set of a complex number $c$ is the set of initial values $z_
 Not every filled-in Julia set is a fractal, but for almost all complex numbers $c$, they are.
 This project contains an implementation to generate images and videos relating to the Mandelbrot set and Julia sets.
 
-<img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps.gif" width="400">
+<img src="https://raw.githubusercontent.com/Fergus-OH/FractalPy/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps.gif" width="400">
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps-min.gif" width="400">
-  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/spin_(-0,79+0,15j)_1000thresh_360pts_110frames_30fps.gif" width="400">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/FractalPy/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps-min.gif" width="400">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/FractalPy/poetry/assets/spin_(-0,79+0,15j)_1000thresh_360pts_110frames_30fps.gif" width="400">
 </p>
 
 
@@ -26,37 +26,29 @@ This project contains an implementation to generate images and videos relating t
   
 
 
-## Install
+## Installation
+Before installing the `FractalPy` package, it is recommended to create and activate a virtual environment with `python 3.10`.
+This can be done with conda by running the following commands in a terminal
+```
+$ conda create --name fractal python==3.10
+```
 
+```
+$ conda activate fractal
+```
+Now the package and it's dependencies can be installed in the virtual environment, `fractal`, using pip
 ```
 $ pip install fractalpy
 ```
 
-Before installing the `fractalPy` package, it is recommended to create and activate a virtual environment with `python 3.10`.
-This can be done with conda by running the following command
+For an editable installation from the source, first clone the repository and install with the following
 ```
-conda create --name fractal python==3.10
+$ conda activate fractal
+$ pip install -e .
 ```
 
-
-[//]: # (The dependencies can be found in the [requirements.txt]&#40;./requirements.txt&#41; file.)
-
-[//]: # (It is recommended to create a virtual environment using conda or venv and install the dependencies by running the following:)
-
-[//]: # (```)
-
-[//]: # (pip install -r requirements.txt)
-
-[//]: # (```)
-
-
-Now the package and it's dependencies can be installed using pip
-```
-conda activate fractal
-pip install -e .
-```
-The package should now be installed in the virtual environment `fractal`.
-There are two ways of using `fractalPy`.
+## Usage
+There are two ways of using `FractalPy`.
 The package can be imported to a python script with
 
 ```python
@@ -71,20 +63,20 @@ frac.Julia().plot()
 
 The package also offers a command line interface that can be immediately accessed in the terminal with
 ```
-fractalPy --help
+fractalpy --help
 ```
 
 For example, we can create a gif of zooming into the mandelbrot set with the following command:
 ```
-fractalPy mandelbrot zoom
+fractalpy mandelbrot zoom
 ```
 
-If FFmpeg is installed and accessible via the $PATH environment variable, then `fractalPy` can also generate videos, for example
+If FFmpeg is installed and accessible via the $PATH environment variable, then `FractalPy` can also generate videos, for example
 ```
-fractalPy mandelbrot zoom --extension mp4
+fractalpy mandelbrot zoom --extension mp4
 ```
 
-`fractalPy` makes use of multiprocessing to generate multiple frames simultaneously and also performs the computationally expensive calculations in parallel with `jit`, making it an extremely fast.
+`FractalPy` makes use of multiprocessing to generate multiple frames simultaneously and also performs the computationally expensive calculations in parallel with `jit`, making it an extremely fast.
 <!-- ```
 Fractal().
 ```
