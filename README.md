@@ -1,6 +1,6 @@
 # fractalPy
 <p align="center">
-  <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="1000">
+  <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="800">
 </p>
 
 Consider the recurrence relation $z_{n+1} = z_n^2 + c$ where $c$ is a complex number.
@@ -11,11 +11,11 @@ The filled-in Julia set of a complex number $c$ is the set of initial values $z_
 Not every filled-in Julia set is a fractal, but for almost all complex numbers $c$, they are.
 This project contains an implementation to generate images and videos relating to the Mandelbrot set and Julia sets.
 
-<img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps.gif" width="500">
+<img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps.gif" width="400">
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps-min.gif" width="500">
-  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/spin_(-0,79+0,15j)_1000thresh_360pts_110frames_30fps.gif" width="500">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps-min.gif" width="400">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/spin_(-0,79+0,15j)_1000thresh_360pts_110frames_30fps.gif" width="400">
 </p>
 
 
