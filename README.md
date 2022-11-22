@@ -11,9 +11,11 @@ The filled-in Julia set of a complex number $c$ is the set of initial values $z_
 Not every filled-in Julia set is a fractal, but for almost all complex numbers $c$, they are.
 This project contains an implementation to generate images and videos relating to the Mandelbrot set and Julia sets.
 
+<img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps.gif" width="500">
+
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps.gif">
-  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/spin_(-0,79+0,15j)_1000thresh_360pts_110frames_30fps.gif">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/zoom_(-1,186592,-0,1901211)_1000thresh_360pts_60frames_15fps-min.gif" width="500">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/spin_(-0,79+0,15j)_1000thresh_360pts_110frames_30fps.gif" width="500">
 </p>
 
 
@@ -24,11 +26,10 @@ This project contains an implementation to generate images and videos relating t
   
 
 
-## Getting Started
-First clone this project by running the following commands in a terminal
+## Install
+
 ```
-git clone https://github.com/Fergus-OH/mandelbrot-julia-sets.git
-cd mandelbrot-julia-sets
+$ pip install fractalpy
 ```
 
 Before installing the `fractalPy` package, it is recommended to create and activate a virtual environment with `python 3.10`.
