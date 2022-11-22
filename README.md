@@ -1,6 +1,6 @@
 # fractalPy
 <p align="center">
-  <img src= "assets/Mandelbrot_4320pts_1000threshold.png" width="1000">
+  <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="1000">
 </p>
 
 Consider the recurrence relation $z_{n+1} = z_n^2 + c$ where $c$ is a complex number.
@@ -12,8 +12,8 @@ Not every filled-in Julia set is a fractal, but for almost all complex numbers $
 This project contains an implementation to generate images and videos relating to the Mandelbrot set and Julia sets.
 
 <p align="center">
-  <img src="assets/zoom_(10004407000,-0,7436439059192348,-0,131825896951)_5000thresh_480pts_300frames_30fps.gif">
-  <img src="assets/julia_spin2.gif" width="500">
+  <img src="https://github.com/Fergus-OH/mandelbrot-julia-sets/blob/numba/assets/zoom_(10004407000,-0,7436439059192348,-0,131825896951)_5000thresh_480pts_300frames_30fps.gif?raw=true">
+  <img src="https://github.com/Fergus-OH/mandelbrot-julia-sets/blob/numba/assets/julia_spin2.gif?raw=true" width="500">
 </p>
 
 ## Getting Started
@@ -54,10 +54,10 @@ The package can be imported to a python script with
 import fractalpy as frac
 
 # Plot the Mandelbrot set
-frac.Mandelbrot.plot()
+frac.Mandelbrot().plot()
 
 # Plot the Julia set
-frac.Julia.plot()
+frac.Julia().plot()
 ```
 
 The package also offers a command line interface that can be immediately accessed in the terminal with

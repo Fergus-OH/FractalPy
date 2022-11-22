@@ -64,7 +64,7 @@ spin_default_args = get_default_args(frac.Julia.spin)
               help='output extension type'
               )
 # @click.option('--frame_subdir',
-#               type=zoom_type_hints['frame_subdir'],
+#               type=spin_type_hints['frame_subdir'],
 #               default='frames',
 #               show_default=True,
 #               help='directory to store frames'
@@ -87,6 +87,6 @@ spin_default_args = get_default_args(frac.Julia.spin)
               show_default=True,
               help='number of processors for multiprocessing frame generation'
               )
-def spin_julia(ctx, filename, extension, frame_subdir, n_frames, fps, n_jobs):
+def spin_julia(ctx, filename, extension, n_frames, fps, n_jobs):
     """create a video of rotating the parameter c"""
-    ctx.obj.spin(filename, extension, frame_subdir, n_frames, fps, n_jobs)
+    ctx.obj.spin(filename, extension, n_frames, fps, n_jobs)

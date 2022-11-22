@@ -141,4 +141,4 @@ class Julia(FractalBase):
 
     def _single_spin_frame(self, i, c):
         self.c = c
-        self.save(filename='frame', subdir='frames', frame_iter=i)
+        self._save_frame(frame_iter=i)
