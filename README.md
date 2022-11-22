@@ -12,9 +12,13 @@ Not every filled-in Julia set is a fractal, but for almost all complex numbers $
 This project contains an implementation to generate images and videos relating to the Mandelbrot set and Julia sets.
 
 <p align="center">
-  <img src="https://github.com/Fergus-OH/mandelbrot-julia-sets/blob/numba/assets/zoom_(10004407000,-0,7436439059192348,-0,131825896951)_5000thresh_480pts_300frames_30fps.gif?raw=true">
-  <img src="https://github.com/Fergus-OH/mandelbrot-julia-sets/blob/numba/assets/julia_spin2.gif?raw=true" width="500">
+  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/zoom_(10004407000,-0,7436439059192348,-0,131825896951)_5000thresh_480pts_300frames_30fps.gif" width="500">
+
+[//]: # (  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/julia_spin2.gif" width="500">)
+  <img src="https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/poetry/assets/spin_(-0,79+0,15j)_1000thresh_1080pts_110frames_30fps.gif" width="500">
 </p>
+
+
 
 ## Getting Started
 First clone this project by running the following commands in a terminal
