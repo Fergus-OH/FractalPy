@@ -1,20 +1,13 @@
-"""This module provides the Command Line Interface for this package."""
 from functools import wraps
-from importlib.metadata import version
 from typing import get_args, get_type_hints
 
 import click
 
-from . import fractals as frac
-from .helper import get_default_args
+from fractalpy.cli.helper import get_default_args
+from fractalpy.fractals import fractals as frac
 
 base_type_hints = get_type_hints(frac.FractalBase.__init__)
-mandel_type_hints = get_type_hints(frac.Mandelbrot.__init__)
-julia_type_hints = get_type_hints(frac.Julia.__init__)
-
 base_default_args = get_default_args(frac.FractalBase.__init__)
-mandel_default_args = get_default_args(frac.Mandelbrot.__init__)
-julia_default_args = get_default_args(frac.Julia.__init__)
 
 
 def needs_options(f):
@@ -59,64 +52,6 @@ def needs_options(f):
         return f(*args, **kwargs)
 
     return wrapper
-
-
-@click.group()
-@click.version_option(version(__package__))
-@click.pass_context
-def cli(ctx):
-    pass
-
-
-@cli.group()
-@click.pass_context
-@click.option('--limits',
-              nargs=4,
-              type=get_args(mandel_type_hints['limits']),
-              default=mandel_default_args['limits'],
-              show_default=True,
-              help="limits"
-              )
-@needs_options
-def mandelbrot(ctx, limits, npts, threshold, cmap, setcolor, pallet_len, shift):
-    """Commands relating to the Mandelbrot set"""
-    ctx.obj = frac.Mandelbrot(limits=limits,
-                              n_pts=npts,
-                              threshold=threshold,
-                              color_map=cmap,
-                              c_set=setcolor,
-                              pallet_len=pallet_len,
-                              color_map_shift=shift
-                              )
-
-
-@cli.group()
-@click.pass_context
-@click.option('-c',
-              type=julia_type_hints['c'],
-              default=julia_default_args['c'],
-              show_default=True,
-              help="c value"
-              )
-@click.option('--limits',
-              nargs=4,
-              type=get_args(julia_type_hints['limits']),
-              default=julia_default_args['limits'],
-              show_default=True,
-              help="limits"
-              )
-@needs_options
-def julia(ctx, c, limits, npts, threshold, cmap, setcolor, pallet_len, shift):
-    """Commands relating to the Julia set"""
-    ctx.obj = frac.Julia(c=c,
-                         limits=limits,
-                         n_pts=npts,
-                         threshold=threshold,
-                         color_map=cmap,
-                         c_set=setcolor,
-                         pallet_len=pallet_len,
-                         color_map_shift=shift
-                         )
 
 
 plot_type_hints = get_type_hints(frac.FractalBase.plot)
@@ -179,16 +114,16 @@ zoom_default_args = get_default_args(frac.FractalBase.zoom)
 @click.option('--magnitude',
               '-m',
               type=zoom_type_hints['m'],
-              default=None,     # see function
+              default=None,  # see function
               show_default=True,
               help='magnitude of zoom to target location'
               )
 @click.option('--target',
               nargs=2,
-              type=zoom_type_hints['target'],
-              default=None,     # see function
+              type=get_args(zoom_type_hints['target']),
+              default=None,  # see function
               show_default=True,
-              help='target location for zoom'
+              help='target location for zoom. Use --preview to inspect default'
               )
 @click.option('--filename',
               type=zoom_type_hints['filename'],
@@ -251,17 +186,15 @@ def zoom_fractal(ctx,
                  nticks
                  ):
     """create a video of zooming into the set"""
+    ctx.obj.magnitude = magnitude if magnitude is not None else get_default_args(ctx.obj.zoom)['m']
+    ctx.obj.target = target if target is not None else get_default_args(ctx.obj.zoom)['target']
     if preview:
-        ctx.obj.x_min, ctx.obj.x_max, ctx.obj.y_min, ctx.obj.y_max = ctx.obj.get_target_ranges(m=magnitude,
-                                                                                               target=target
+        ctx.obj.x_min, ctx.obj.x_max, ctx.obj.y_min, ctx.obj.y_max = ctx.obj.get_target_ranges(m=ctx.obj.magnitude,
+                                                                                               target=ctx.obj.target
                                                                                                )
+        ctx.obj.plot(axis='on', title=f'm={ctx.obj.magnitude:.1e}; target={ctx.obj.target}', n_ticks=nticks)
 
-        ctx.obj.plot(axis='on', n_ticks=nticks)
     else:
-
-        ctx.obj.magnitude = magnitude if magnitude is not None else get_default_args(ctx.obj.zoom)['m']
-        ctx.obj.target = target if target is not None else get_default_args(ctx.obj.zoom)['target']
-
         ctx.obj.zoom(filename=filename,
                      extension=extension,
                      frame_subdir=frame_subdir,
@@ -269,59 +202,3 @@ def zoom_fractal(ctx,
                      fps=fps,
                      n_jobs=n_jobs
                      )
-
-
-mandelbrot.add_command(plot_fractal)
-mandelbrot.add_command(save_fractal)
-mandelbrot.add_command(zoom_fractal)
-
-julia.add_command(plot_fractal)
-julia.add_command(save_fractal)
-julia.add_command(zoom_fractal)
-
-
-spin_type_hints = get_type_hints(frac.Julia.spin)
-spin_default_args = get_default_args(frac.Julia.spin)
-
-
-@julia.command('spin')
-@click.pass_context
-@click.option('--filename',
-              type=spin_type_hints['filename'],
-              default=None,
-              show_default=True,
-              help='output filename'
-              )
-@click.option('--extension',
-              type=spin_type_hints['extension'],
-              default=spin_default_args['extension'],
-              show_default=True,
-              help='output extension type'
-              )
-# @click.option('--frame_subdir',
-#               type=zoom_type_hints['frame_subdir'],
-#               default='frames',
-#               show_default=True,
-#               help='directory to store frames'
-#               )
-@click.option('--n_frames',
-              type=spin_type_hints['n_frames'],
-              default=spin_default_args['n_frames'],
-              show_default=True,
-              help='Number of frames for video'
-              )
-@click.option('--fps',
-              type=spin_type_hints['fps'],
-              default=spin_default_args['fps'],
-              show_default=True,
-              help='framerate of video in frames per second'
-              )
-@click.option('--n_jobs',
-              type=spin_type_hints['n_jobs'],
-              default=spin_default_args['n_jobs'],
-              show_default=True,
-              help='number of processors for multiprocessing frame generation'
-              )
-def spin_julia(ctx, filename, extension, frame_subdir, n_frames, fps, n_jobs):
-    """create a video of rotating the parameter c"""
-    ctx.obj.spin(filename, extension, frame_subdir, n_frames, fps, n_jobs)
