@@ -1,7 +1,7 @@
 """Main execution script for this package."""
 
 # import the main entry point of the application
-from .cli.cli_main import cli_main
+from .cli.cli_main import main
 
 # execute the main entry point of the CLI
-cli_main()
+main()

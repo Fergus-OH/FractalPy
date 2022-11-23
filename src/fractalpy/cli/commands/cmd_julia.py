@@ -11,25 +11,24 @@ julia_type_hints = get_type_hints(frac.Julia.__init__)
 julia_default_args = get_default_args(frac.Julia.__init__)
 
 
-# @cli_main.group()
 @click.group()
 @click.pass_context
 @click.option('-c',
               type=julia_type_hints['c'],
               default=julia_default_args['c'],
               show_default=True,
-              help="c value"
+              help="Value for the point c"
               )
 @click.option('--limits',
               nargs=4,
               type=get_args(julia_type_hints['limits']),
               default=julia_default_args['limits'],
               show_default=True,
-              help="limits"
+              help="Lower and upper limits for the ranges of x values and y values"
               )
 @cmd.needs_options
 def julia(ctx, c, limits, npts, threshold, cmap, setcolor, pallet_len, shift):
-    """Commands relating to the Julia set"""
+    """Commands related to the Julia set."""
     ctx.obj = frac.Julia(c=c,
                          limits=limits,
                          n_pts=npts,
@@ -55,13 +54,13 @@ spin_default_args = get_default_args(frac.Julia.spin)
               type=spin_type_hints['filename'],
               default=None,
               show_default=True,
-              help='output filename'
+              help='Output filename.'
               )
 @click.option('--extension',
               type=spin_type_hints['extension'],
               default=spin_default_args['extension'],
               show_default=True,
-              help='output extension type'
+              help='Output extension type.'
               )
 # @click.option('--frame_subdir',
 #               type=spin_type_hints['frame_subdir'],
@@ -73,20 +72,20 @@ spin_default_args = get_default_args(frac.Julia.spin)
               type=spin_type_hints['n_frames'],
               default=spin_default_args['n_frames'],
               show_default=True,
-              help='Number of frames for video'
+              help='Number of frames for video/gif.'
               )
 @click.option('--fps',
               type=spin_type_hints['fps'],
               default=spin_default_args['fps'],
               show_default=True,
-              help='framerate of video in frames per second'
+              help='Framerate of video/gif in frames per second.'
               )
 @click.option('--n_jobs',
               type=spin_type_hints['n_jobs'],
               default=spin_default_args['n_jobs'],
               show_default=True,
-              help='number of processors for multiprocessing frame generation'
+              help='Number of processors for multiprocessing frame generation (default is cpu count).'
               )
 def spin_julia(ctx, filename, extension, n_frames, fps, n_jobs):
-    """create a video of rotating the parameter c"""
+    """Create a video of periodic rotation with respect to the point c."""
     ctx.obj.spin(filename, extension, n_frames, fps, n_jobs)

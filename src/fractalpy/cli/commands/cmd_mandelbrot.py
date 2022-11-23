@@ -18,11 +18,11 @@ mandel_default_args = get_default_args(frac.Mandelbrot.__init__)
               type=get_args(mandel_type_hints['limits']),
               default=mandel_default_args['limits'],
               show_default=True,
-              help="limits"
+              help="Lower and upper limits for the ranges of x values and y values."
               )
 @cmd.needs_options
 def mandelbrot(ctx, limits, npts, threshold, cmap, setcolor, pallet_len, shift):
-    """Commands relating to the Mandelbrot set"""
+    """Commands related to the Mandelbrot set."""
     ctx.obj = frac.Mandelbrot(limits=limits,
                               n_pts=npts,
                               threshold=threshold,

@@ -25,37 +25,37 @@ def needs_options(f):
                   type=base_type_hints['n_pts'],
                   default=base_default_args['n_pts'],
                   show_default=True,
-                  help="npts value"
+                  help="Number of points along the x-axis."
                   )
     @click.option('--threshold',
                   type=base_type_hints['threshold'],
                   default=base_default_args['threshold'],
                   show_default=True,
-                  help="threshold"
+                  help="Number of iterations required to determine if a point is in the set."
                   )
     @click.option('--cmap',
                   type=base_type_hints['color_map'],
                   default=base_default_args['color_map'],
                   show_default=True,
-                  help="color map"
+                  help="Specify Matplotlib colormap."
                   )
     @click.option('--setcolor',
                   type=base_type_hints['c_set'],
                   default=base_default_args['c_set'],
                   show_default=True,
-                  help="set color of the set"
+                  help="Color of the plotted set."
                   )
     @click.option('--pallet_len',
                   type=base_type_hints['pallet_len'],
                   default=base_default_args['pallet_len'],
                   show_default=True,
-                  help="pallet length"
+                  help="Periodic length of colormap pallet."
                   )
     @click.option('--shift',
                   type=base_type_hints['color_map_shift'],
                   default=base_default_args['color_map_shift'],
                   show_default=True,
-                  help="color_map_shift"
+                  help="Shift of colormap."
                   )
     def wrapper(*args, **kwargs):
         return f(*args, **kwargs)
@@ -69,22 +69,22 @@ def needs_options(f):
               type=plot_type_hints['fig_size'],
               default=plot_default_args['fig_size'],
               show_default=True,
-              help="size of figure"
+              help="Size of figure plot."
               )
 @click.option("--axis",
               is_flag=True,
               default=False,
               show_default=True,
-              help="Show axis"
+              help="Show axis flag."
               )
 @click.option("--nticks",
               type=plot_type_hints['n_ticks'],
               default=plot_default_args['n_ticks'],
               show_default=True,
-              help="Number of ticks"
+              help="Number of ticks along axes."
               )
 def plot_fractal(ctx, fig_size, axis, nticks):
-    """plot the set"""
+    """Plot the set."""
     ctx.obj.plot(fig_size=fig_size, axis=axis, n_ticks=nticks)
 
 
@@ -93,15 +93,15 @@ def plot_fractal(ctx, fig_size, axis, nticks):
 @click.option('--filename',
               type=save_type_hints['filename'],
               default=save_default_args['filename'],
-              help="filename of image"
+              help="Filename of output image."
               )
 @click.option('--extension',
               type=save_type_hints['extension'],
               default=save_default_args['extension'],
-              help="extension of image"
+              help="Format of output image."
               )
 def save_fractal(ctx, filename, extension):
-    """save an image of the set"""
+    """Save an image of the set."""
     ctx.obj.save(filename=filename, extension=extension)
 
 
@@ -112,62 +112,62 @@ def save_fractal(ctx, filename, extension):
               type=zoom_type_hints['m'],
               default=None,  # see function
               show_default=True,
-              help='magnitude of zoom to target location'
+              help='Magnitude of zoom to target location.'
               )
 @click.option('--target',
               nargs=2,
               type=get_args(zoom_type_hints['target']),
               default=None,  # see function
               show_default=True,
-              help='target location for zoom. Use --preview to inspect default'
+              help='Target location for zoom (Use --preview to inspect default).'
               )
 @click.option('--filename',
               type=zoom_type_hints['filename'],
               default=zoom_default_args['filename'],
               show_default=True,
-              help='output filename'
+              help='Output filename.'
               )
 @click.option('--extension',
               type=zoom_type_hints['extension'],
               default=zoom_default_args['extension'],
               show_default=True,
-              help='output extension type'
+              help='Output format.'
               )
 @click.option('--frame_subdir',
               type=zoom_type_hints['frame_subdir'],
               default=zoom_default_args['frame_subdir'],
               show_default=True,
-              help='directory to store frames'
+              help='Directory to store frames.'
               )
 @click.option('--n_frames',
               type=zoom_type_hints['n_frames'],
               default=zoom_default_args['n_frames'],
               show_default=True,
-              help='Number of frames for video'
+              help='Number of frames for video/gif.'
               )
 @click.option('--fps',
               type=zoom_type_hints['fps'],
               default=zoom_default_args['fps'],
               show_default=True,
-              help='framerate of video in frames per second'
+              help='Framerate of video/gif in frames per second.'
               )
 @click.option('--n_jobs',
               type=zoom_type_hints['n_jobs'],
               default=zoom_default_args['n_jobs'],
               show_default=True,
-              help='number of processors for multiprocessing frame generation'
+              help='Number of processors for multiprocessing frame generation (default is cpu count).'
               )
 @click.option('--preview',
               is_flag=True,
               default=False,
               show_default=True,
-              help="Preview target location"
+              help="Preview target location flag."
               )
 @click.option('--nticks',
               default=5,
               type=int,
               show_default=True,
-              help="Number of axes ticks (useful for preview)"
+              help="Number of axes ticks (useful for preview)."
               )
 def zoom_fractal(ctx,
                  magnitude,
@@ -181,7 +181,7 @@ def zoom_fractal(ctx,
                  preview,
                  nticks
                  ):
-    """create a video of zooming into the set"""
+    """Create a video that zooms in to the set."""
     ctx.obj.magnitude = magnitude if magnitude is not None else get_default_args(ctx.obj.zoom)['m']
     ctx.obj.target = target if target is not None else get_default_args(ctx.obj.zoom)['target']
     if preview:
