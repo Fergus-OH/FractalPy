@@ -1,7 +1,6 @@
 from typing import get_args, get_type_hints
 
 import click
-
 from fractalpy.cli.helper import get_default_args
 from fractalpy.fractals import fractals as frac
 
