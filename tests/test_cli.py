@@ -1,16 +1,16 @@
 import unittest
 from unittest.mock import patch
 
-import fractalpy
 from click.testing import CliRunner
 from fractalpy.cli.cli_main import cli_main
+import runpy
 
 
 class TestCli(unittest.TestCase):
 
     @patch('fractalpy.cli.cli_main.cli_main')
     def test_init(self, mock):
-        fractalpy.cli.cli_main.main()
+        runpy.run_module(mod_name='fractalpy')
         mock.assert_called_once()
 
 

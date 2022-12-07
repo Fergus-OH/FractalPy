@@ -1,5 +1,11 @@
 # FractalPy
+![pypi](https://img.shields.io/pypi/v/FractalPy)
+![tag](https://img.shields.io/github/v/tag/Fergus-OH/FractalPy)
+![python_version](https://img.shields.io/pypi/pyversions/FractalPy)
+![licence](https://img.shields.io/github/license/Fergus-OH/FractalPy)
+![checks](https://img.shields.io/github/checks-status/Fergus-OH/FractalPy/numba)
 [![codecov](https://codecov.io/gh/Fergus-OH/FractalPy/branch/numba/graph/badge.svg?token=XWYUNL7XIE)](https://codecov.io/gh/Fergus-OH/FractalPy)
+
 <p align="center">
   <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="800">
 </p>

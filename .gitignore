@@ -13,3 +13,4 @@ FractalPy_Outputs/
 src/fractalPy.egg-info/
 assets/old/
 ignore/
+.coverage.*
