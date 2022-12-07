@@ -1,9 +1,9 @@
 """This module provides the Command Line Interface for this package."""
 
+import collections
 from importlib.metadata import version
 
 import click
-import collections
 
 from .. import __version__
 from .commands import cmd_julia, cmd_mandelbrot

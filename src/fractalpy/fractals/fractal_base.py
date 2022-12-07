@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import Union
 
 import imageio as iio
-import matplotlib.cm as cmx
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import colormaps as cm
 from mpire import WorkerPool
 
 working_path = Path().resolve()
@@ -71,14 +71,14 @@ class FractalBase(ABC):
     @color_map.setter
     def color_map(self, c_map):
         """Sets the color map with a mask for the values in the fractalpy set"""
-        new_c_map = cmx.get_cmap(c_map).copy()
+        new_c_map = cm.get_cmap(c_map).copy()
         new_c_map.set_bad(color=self.set_color)
         self._color_map = new_c_map
 
     @property
     @abstractmethod
-    def _color_chart(self):
-        pass
+    def color_chart(self):
+        """The color chart of the calculated set"""
 
     @abstractmethod
     def plot(self,
@@ -100,7 +100,7 @@ class FractalBase(ABC):
 
         fig_size = (fig_size * self.ratio, fig_size)
         fig, ax = plt.subplots(figsize=fig_size)
-        ax.imshow(self._color_chart % self.pallet_len,  # Modulo length of pallet for periodicity
+        ax.imshow(self.color_chart % self.pallet_len,  # Modulo length of pallet for periodicity
                   origin='upper',
                   cmap=self.color_map,
                   vmin=0,
@@ -134,7 +134,7 @@ class FractalBase(ABC):
         self._make_dir(os.path.join('FractalPy_Outputs', 'images'))
         fname = os.path.join('FractalPy_Outputs', 'images', f'{filename}.{extension}')
         plt.imsave(fname=fname,
-                   arr=self._color_chart % self.pallet_len,
+                   arr=self.color_chart % self.pallet_len,
                    origin='upper',
                    cmap=self.color_map,
                    vmin=0,
@@ -194,22 +194,27 @@ class FractalBase(ABC):
                     zip(self.y_min + geom * (y_target_min - self.y_min),
                         self.y_max + geom * (y_target_max - self.y_max))]
 
-        # MULTIPROCESSING
-        """
-        inputs = zip(range(n_frames), x_ranges, y_ranges)
-        with Pool() as p:
-            list(tqdm(p.imap_unordered(self._single_zoom_frame, inputs), total=n_frames))
+        if n_jobs == 1:
+            for i in range(n_frames):
+                self._single_zoom_frame(i, x_ranges[i], y_ranges[i])
 
-        inputs = zip(range(n_frames), x_ranges, y_ranges)
-        p_umap(self._single_zoom_frame, inputs)
-        """
+        else:
+            # MULTIPROCESSING
+            """
+            inputs = zip(range(n_frames), x_ranges, y_ranges)
+            with Pool() as p:
+                list(tqdm(p.imap_unordered(self._single_zoom_frame, inputs), total=n_frames))
+    
+            inputs = zip(range(n_frames), x_ranges, y_ranges)
+            p_umap(self._single_zoom_frame, inputs)
+            """
 
-        # Pack up frame data to be carried out by workers
-        inputs = zip(range(n_frames), x_ranges, y_ranges)
+            # Pack up frame data to be carried out by workers
+            inputs = zip(range(n_frames), x_ranges, y_ranges)
 
-        # Assign workers to generate image frames in a multiprocessing configuration
-        with WorkerPool(n_jobs=n_jobs) as pool:
-            pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
+            # Assign workers to generate image frames in a multiprocessing configuration
+            with WorkerPool(n_jobs=n_jobs) as pool:
+                pool.map(self._single_zoom_frame, inputs, progress_bar=True, iterable_len=n_frames)
 
         # Assign default filename TODO: decide on consistency with where to determine default filename and fix the details of the filename along with adding the magnitude
         if not filename:
@@ -251,7 +256,7 @@ class FractalBase(ABC):
     def _save_frame(self, frame_iter, extension='png'):
         fname = os.path.join('FractalPy_Outputs', 'frames', f'frame{frame_iter}.{extension}')
         plt.imsave(fname=fname,
-                   arr=self._color_chart % self.pallet_len,
+                   arr=self.color_chart % self.pallet_len,
                    origin='upper',
                    cmap=self.color_map,
                    vmin=0,
