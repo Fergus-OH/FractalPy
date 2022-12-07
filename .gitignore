@@ -5,8 +5,11 @@ old_files/
 images/
 videos/
 gifs/
+dist/
 testcli.py
-src/fractalPy/testtt.py
+src/fractalpy/testtt.py
 old_main.py
-fractals/
+FractalPy_Outputs/
 src/fractalPy.egg-info/
+assets/old/
+ignore/
