@@ -15,7 +15,6 @@ mpire = "^2.6.0"
 matplotlib = "^3.6.2"
 imageio = "^2.22.4"
 click = "^8.1.3"
-importlib-metadata = "^5.0.0"
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
 
