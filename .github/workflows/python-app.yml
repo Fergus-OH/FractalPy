@@ -5,9 +5,9 @@ name: Python application
 
 on:
   push:
-    branches: [ "numba" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "numba" ]
+    branches: [ "main" ]
 
 permissions:
   contents: read
