@@ -1,10 +1,13 @@
 # FractalPy
-![pypi](https://img.shields.io/pypi/v/FractalPy)
-![tag](https://img.shields.io/github/v/tag/Fergus-OH/FractalPy)
-![python_version](https://img.shields.io/pypi/pyversions/FractalPy)
-![licence](https://img.shields.io/github/license/Fergus-OH/FractalPy)
-![checks](https://img.shields.io/github/checks-status/Fergus-OH/FractalPy/main)
+[![pypi](https://img.shields.io/pypi/v/FractalPy)](https://pypi.org/project/fractalpy/)
+[![tag](https://img.shields.io/github/v/tag/Fergus-OH/FractalPy)]()
+[![python_version](https://img.shields.io/pypi/pyversions/FractalPy)]()
+[![licence](https://img.shields.io/github/license/Fergus-OH/FractalPy)](https://github.com/Fergus-OH/FractalPy/blob/main/LICENCE.md)
+[![code quality](https://img.shields.io/scrutinizer/quality/g/Fergus-OH/FractalPy/main)](https://scrutinizer-ci.com/g/Fergus-OH/FractalPy/)
+[![checks](https://img.shields.io/github/checks-status/Fergus-OH/FractalPy/main)]()
+[![build](https://img.shields.io/github/workflow/status/Fergus-OH/FractalPy/Python%20application)](https://github.com/Fergus-OH/FractalPy/actions/workflows/python-app.yml)
 [![codecov](https://codecov.io/gh/Fergus-OH/FractalPy/branch/main/graph/badge.svg?token=XWYUNL7XIE)](https://codecov.io/gh/Fergus-OH/FractalPy)
+
 
 <p align="center">
   <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="800">
@@ -50,13 +53,34 @@ Now the package and it's dependencies can be installed in the virtual environmen
 $ pip install fractalpy
 ```
 
-For an editable installation from the source, first clone the repository and install with the following
+Install source
 ```
-$ conda activate fractal
+$ pip install git+https://github.com/Fergus-OH/FractalPy.git
+```
+
+To install an editable installation, 
+An environment with an editable installation can be setup and installed from the source
+```
+$ git clone https://github.com/Fergus-OH/FractalPy.git
+$ cd FractalPy
 $ pip install -e .
+```
+After which, a shell for the environment with the editable installation of `fractalpy` can be spawned
+```
+$ poetry shell
 ```
 
 ## Usage
+To get started with `FractalPy`, type the following in a terminal to show documentation for the command line 
+interface application
+
+```
+$ fractalpy --help
+```
+
+
+FractalPy can be also be used directly in a notebook or python script by importing the fractalpy package
+
 There are two ways of using `FractalPy`.
 The package can be imported to a python script with
 
