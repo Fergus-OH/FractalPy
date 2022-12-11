@@ -7,6 +7,7 @@
 [![checks](https://img.shields.io/github/checks-status/Fergus-OH/FractalPy/main)]()
 [![build](https://img.shields.io/github/workflow/status/Fergus-OH/FractalPy/Python%20application)](https://github.com/Fergus-OH/FractalPy/actions/workflows/python-app.yml)
 [![codecov](https://codecov.io/gh/Fergus-OH/FractalPy/branch/main/graph/badge.svg?token=XWYUNL7XIE)](https://codecov.io/gh/Fergus-OH/FractalPy)
+[![docs](https://img.shields.io/readthedocs/fractalpy)](https://fractalpy.readthedocs.io/en/latest/)
 
 
 <p align="center">
