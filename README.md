@@ -1,10 +1,13 @@
 # FractalPy
-![pypi](https://img.shields.io/pypi/v/FractalPy)
-![tag](https://img.shields.io/github/v/tag/Fergus-OH/FractalPy)
-![python_version](https://img.shields.io/pypi/pyversions/FractalPy)
-![licence](https://img.shields.io/github/license/Fergus-OH/FractalPy)
-![checks](https://img.shields.io/github/checks-status/Fergus-OH/FractalPy/main)
+[![pypi](https://img.shields.io/pypi/v/FractalPy)](https://pypi.org/project/fractalpy/)
+[![tag](https://img.shields.io/github/v/tag/Fergus-OH/FractalPy)]()
+[![python_version](https://img.shields.io/pypi/pyversions/FractalPy)]()
+[![licence](https://img.shields.io/github/license/Fergus-OH/FractalPy)](https://github.com/Fergus-OH/FractalPy/blob/main/LICENCE.md)
+[![code quality](https://img.shields.io/scrutinizer/quality/g/Fergus-OH/FractalPy/main)](https://scrutinizer-ci.com/g/Fergus-OH/FractalPy/)
+[![build](https://img.shields.io/github/actions/workflow/status/Fergus-OH/FractalPy/python-app.yml?branch=main)](https://github.com/Fergus-OH/FractalPy/actions/workflows/python-app.yml)
+[![checks](https://img.shields.io/github/checks-status/Fergus-OH/FractalPy/main)]()
 [![codecov](https://codecov.io/gh/Fergus-OH/FractalPy/branch/main/graph/badge.svg?token=XWYUNL7XIE)](https://codecov.io/gh/Fergus-OH/FractalPy)
+[![docs](https://img.shields.io/readthedocs/fractalpy)](https://fractalpy.readthedocs.io/en/latest/)
 
 <p align="center">
   <img src= "https://raw.githubusercontent.com/Fergus-OH/mandelbrot-julia-sets/numba/assets/Mandelbrot_4320pts_1000threshold.png" width="800">
@@ -45,18 +48,41 @@ $ conda create --name fractal python==3.10
 ```
 $ conda activate fractal
 ```
-Now the package and it's dependencies can be installed in the virtual environment, `fractal`, using pip
+Now the package and it's dependencies can be installed in the virtual environment, `fractal`, using pip.
+
+To install the stable release, run
 ```
 $ pip install fractalpy
 ```
 
-For an editable installation from the source, first clone the repository and install with the following
+To install the latest version, run
 ```
-$ conda activate fractal
-$ pip install -e .
+$ pip install git+https://github.com/Fergus-OH/FractalPy.git
 ```
 
+To install an editable installation, clone the repository, checkout the develop branch, and install the contents with pip.
+This can be done with the following commands
+```
+$ git clone --branch develop https://github.com/Fergus-OH/FractalPy.git
+$ cd FractalPy
+$ pip install -e .
+```
+<!-- After which, a shell for the environment with the editable installation of `fractalpy` can be spawned
+```
+$ poetry shell
+``` -->
+
 ## Usage
+To get started with `FractalPy`, type the following in a terminal to show documentation for the command line 
+interface application
+
+```
+$ fractalpy --help
+```
+
+
+FractalPy can be also be used directly in a notebook or python script by importing the fractalpy package
+
 There are two ways of using `FractalPy`.
 The package can be imported to a python script with
 
@@ -94,3 +120,7 @@ Fractal().
 A notebook with demos can be found [here](https://nbviewer.org/github/Fergus-OH/mandelbrot-julia-sets/blob/numba/demos.ipynb)
 
 <a href="https://nbviewer.org/github/Fergus-OH/mandelbrot-julia-sets/blob/numba/demos.ipynb"><img src="https://raw.githubusercontent.com/jupyter/design/master/logos/Badges/nbviewer_badge.svg" alt="Render nbviewer" /></a> -->
+
+## Documentation
+Documentation is available on [readthedocs.io](https://fractalpy.readthedocs.io/en/latest/), with a pdf format available
+[here](https://fractalpy.readthedocs.io/_/downloads/en/latest/pdf/).
